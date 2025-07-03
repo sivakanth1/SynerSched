@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:syner_sched/localization/app_localizations.dart';
 import 'package:syner_sched/localization/inherited_locale.dart';
 import 'package:syner_sched/routes/app_routes.dart';
-import 'package:syner_sched/shared/buildInputField.dart';
+import 'package:syner_sched/shared/build_input_field.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

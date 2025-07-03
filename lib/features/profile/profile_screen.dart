@@ -27,7 +27,7 @@ class ProfileScreen extends StatelessWidget {
           ),
         ],
       ),
-      bottomNavigationBar: CustomNavBar(currentIndex: 3, onTap: (index) {}),
+      bottomNavigationBar: CustomNavBar(currentIndex: 3),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [

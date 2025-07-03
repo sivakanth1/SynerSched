@@ -26,7 +26,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         backgroundColor: const Color(0xFF0277BD),
         foregroundColor: Colors.white,
       ),
-      bottomNavigationBar: CustomNavBar(currentIndex: 2, onTap: (index) {}),
+      bottomNavigationBar: CustomNavBar(currentIndex: 2),
       body: Column(
         children: [
           Expanded(

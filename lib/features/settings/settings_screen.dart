@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:syner_sched/localization/app_localizations.dart';
-import 'package:syner_sched/localization/inherited_locale.dart';
 import 'package:syner_sched/shared/custom_nav_bar.dart';
+
+import '../../localization/inherited_locale.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -9,53 +10,166 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final localizer = AppLocalizations.of(context)!;
-    final localeController = InheritedLocale.of(context);
-    final isEnglish = localizer.locale.languageCode == 'en';
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(localizer.translate("settings")),
-        backgroundColor: const Color(0xFF0277BD),
-        foregroundColor: Colors.white,
+    return Container(
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage("assets/images/app_background.jpg"),
+          fit: BoxFit.fill,
+        ),
       ),
-      bottomNavigationBar: CustomNavBar(currentIndex: 3, onTap: (index) {}),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          const SizedBox(height: 16),
-          ListTile(
-            leading: const Icon(Icons.language),
-            title: Text(localizer.translate("change_language")),
-            subtitle: Text(isEnglish ? "English" : "Español"),
-            trailing: TextButton(
-              onPressed: () {
-                final newLocale = isEnglish
-                    ? const Locale('es')
-                    : const Locale('en');
-                localeController?.setLocale(newLocale);
-              },
-              child: Text(isEnglish ? "Español >" : "English >"),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          foregroundColor: Color(0xFF2D4F48),
+          centerTitle: true,
+          title: Text(
+            localizer.translate('settings'),
+            style: const TextStyle(
+              color: Color(0xFF2D4F48),
+              fontSize: 25,
+              fontWeight: FontWeight.bold,
             ),
           ),
-          const Divider(),
+        ),
+        bottomNavigationBar: CustomNavBar(currentIndex: 3),
+        body: Container(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 90),
+          child: Column(
+            children: [
+              // Change Language Card
+              _buildSettingCard(
+                context,
+                icon: Icons.language,
+                title: localizer.translate('change_language'),
+                subtitle: localizer.locale.languageCode == 'en'
+                    ? "English"
+                    : "Español",
+                onTap: () {
+                  String currentLang = localizer.locale.languageCode;
+                  String selectedLang = currentLang;
 
-          ListTile(
-            leading: const Icon(Icons.color_lens),
-            title: Text(localizer.translate("theme")),
-            subtitle: const Text("Coming soon..."),
-            trailing: const Icon(Icons.lock_outline),
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: Text(localizer.translate('change_language')),
+                        content: StatefulBuilder(
+                          builder: (context, setState) {
+                            return Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                RadioListTile<String>(
+                                  title: const Text("English"),
+                                  value: 'en',
+                                  groupValue: selectedLang,
+                                  onChanged: (value) {
+                                    setState(() => selectedLang = value!);
+                                  },
+                                ),
+                                RadioListTile<String>(
+                                  title: const Text("Español"),
+                                  value: 'es',
+                                  groupValue: selectedLang,
+                                  onChanged: (value) {
+                                    setState(() => selectedLang = value!);
+                                  },
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () =>
+                                Navigator.pop(context), // Close dialog
+                            child: const Text("Cancel"),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              InheritedLocale.of(
+                                context,
+                              )?.setLocale(Locale(selectedLang));
+                              Navigator.pop(context);
+                            },
+                            child: const Text("Apply"),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
+              ),
+
+              const SizedBox(height: 12),
+
+              // App Theme Card
+              _buildSettingCard(
+                context,
+                icon: Icons.palette,
+                title: localizer.translate('app_theme'),
+                subtitle: localizer.translate('coming_soon'),
+                trailing: const Icon(Icons.lock, color: Color(0xFF2D4F48)),
+                onTap: () {},
+              ),
+
+              const SizedBox(height: 12),
+
+              // Logout Card
+              _buildSettingCard(
+                context,
+                icon: Icons.logout,
+                title: localizer.translate('logout'),
+                subtitle: "",
+                onTap: () {
+                  Navigator.pushReplacementNamed(context, '/login');
+                },
+              ),
+            ],
           ),
+        ),
+      ),
+    );
+  }
 
-          const Divider(),
-
-          ListTile(
-            leading: const Icon(Icons.logout),
-            title: Text(localizer.translate("logout")),
-            onTap: () {
-              // TODO: Implement logout functionality
-            },
+  Widget _buildSettingCard(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    Widget? trailing,
+  }) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 12,
+        ),
+        leading: Icon(icon, color: const Color(0xFF2D4F48), size: 28),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+            color: Color(0xFF2D4F48),
           ),
-        ],
+        ),
+        subtitle: subtitle.isNotEmpty
+            ? Text(subtitle, style: const TextStyle(color: Color(0xFF4A4A4A)))
+            : null,
+        trailing:
+            trailing ??
+            const Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: Color(0xFF4A4A4A),
+            ),
+        onTap: onTap,
       ),
     );
   }

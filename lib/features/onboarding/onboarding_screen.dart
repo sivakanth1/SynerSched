@@ -3,8 +3,6 @@ import 'package:syner_sched/localization/app_localizations.dart';
 import 'package:syner_sched/routes/app_routes.dart';
 import 'package:syner_sched/localization/inherited_locale.dart';
 
-import '../../main.dart';
-
 class OnboardingScreen extends StatelessWidget {
   const OnboardingScreen({super.key});
 

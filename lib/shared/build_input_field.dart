@@ -23,7 +23,7 @@ Widget buildInputField({
           : null,
       hintText: hint,
       filled: true,
-      fillColor: Colors.white.withOpacity(0.95),
+      fillColor: Colors.white.withValues(alpha: 0.95),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
         borderSide: const BorderSide(color: Color(0xFF2D4F48)),

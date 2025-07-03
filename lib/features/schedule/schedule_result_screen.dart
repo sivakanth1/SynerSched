@@ -21,7 +21,7 @@ class ScheduleResultScreen extends StatelessWidget {
         backgroundColor: const Color(0xFF0277BD),
         foregroundColor: Colors.white,
       ),
-      bottomNavigationBar: CustomNavBar(currentIndex: 1, onTap: (index) {}),
+      bottomNavigationBar: CustomNavBar(currentIndex: 1),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(

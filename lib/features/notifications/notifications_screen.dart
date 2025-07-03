@@ -37,7 +37,7 @@ class NotificationsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBody: true,
-      bottomNavigationBar: const CustomNavBar(currentIndex: 0, onTap: _noop),
+      bottomNavigationBar: const CustomNavBar(currentIndex: 0),
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(

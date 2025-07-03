@@ -3,13 +3,8 @@ import 'package:syner_sched/routes/app_routes.dart';
 
 class CustomNavBar extends StatelessWidget {
   final int currentIndex;
-  final Function(int) onTap;
 
-  const CustomNavBar({
-    super.key,
-    required this.currentIndex,
-    required this.onTap,
-  });
+  const CustomNavBar({super.key, required this.currentIndex});
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +43,6 @@ class CustomNavBar extends StatelessWidget {
         ),
         unselectedLabelStyle: const TextStyle(fontSize: 12),
         onTap: (index) {
-          onTap(index);
           // Optional: Handle navigation globally
           switch (index) {
             case 0:
@@ -80,11 +74,20 @@ class CustomNavBar extends StatelessWidget {
             activeIcon: Icon(Icons.home_rounded),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_month),
+            icon: Icon(Icons.calendar_month_outlined),
             label: 'Schedule',
+            activeIcon: Icon(Icons.calendar_month),
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.group), label: 'Collab'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.group_outlined),
+            label: 'Collab',
+            activeIcon: Icon(Icons.group),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outlined),
+            label: 'Profile',
+            activeIcon: Icon(Icons.person),
+          ),
         ],
       ),
     );

@@ -70,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-        bottomNavigationBar: CustomNavBar(currentIndex: 0, onTap: (index) {}),
+        bottomNavigationBar: CustomNavBar(currentIndex: 0),
 
         //Add Task Button
         floatingActionButton: FloatingActionButton.extended(
@@ -182,7 +182,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
             );
-          }).toList(),
+          }),
         ],
       ),
     );
@@ -254,7 +254,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               subtitle: Text(formatted),
             );
-          }).toList(),
+          }),
         ],
       ),
     );
@@ -307,14 +307,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
             );
-          }).toList(),
+          }),
         ],
       ),
     );
   }
 
   void _showAddTaskDialog(BuildContext context) {
-    final _titleController = TextEditingController();
+    final titleController = TextEditingController();
     DateTime? selectedDate;
     TimeOfDay? selectedTime;
 
@@ -329,7 +329,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
-                    controller: _titleController,
+                    controller: titleController,
                     decoration: const InputDecoration(
                       labelText: "Task Title",
                       border: OutlineInputBorder(),
@@ -381,7 +381,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    if (_titleController.text.isNotEmpty &&
+                    if (titleController.text.isNotEmpty &&
                         selectedDate != null &&
                         selectedTime != null) {
                       final dateTime = DateTime(
@@ -393,7 +393,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                       setState(() {
                         _tasks.add({
-                          'title': _titleController.text,
+                          'title': titleController.text,
                           'datetime': dateTime,
                         });
                       });

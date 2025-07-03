@@ -17,7 +17,7 @@ class NewCollabScreen extends StatelessWidget {
         backgroundColor: const Color(0xFF0277BD),
         foregroundColor: Colors.white,
       ),
-      bottomNavigationBar: CustomNavBar(currentIndex: 2, onTap: (index) {}),
+      bottomNavigationBar: CustomNavBar(currentIndex: 2),
       body: Container(
         padding: const EdgeInsets.all(16),
         child: Column(

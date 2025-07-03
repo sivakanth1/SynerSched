@@ -46,7 +46,7 @@ class CollabBoardScreen extends StatelessWidget {
         ),
         backgroundColor: Colors.blue.shade800,
       ),
-      bottomNavigationBar: CustomNavBar(currentIndex: 2, onTap: (index) {}),
+      bottomNavigationBar: CustomNavBar(currentIndex: 2),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -58,14 +58,14 @@ class CollabBoardScreen extends StatelessWidget {
         child: ListView.separated(
           padding: const EdgeInsets.all(16),
           itemCount: projects.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
+          separatorBuilder: (_, _) => const SizedBox(height: 12),
           itemBuilder: (context, index) {
             final item = projects[index];
             return Card(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
-              color: Colors.white.withOpacity(0.95),
+              color: Colors.white.withValues(alpha: 0.95),
               elevation: 3,
               child: ListTile(
                 leading: CircleAvatar(

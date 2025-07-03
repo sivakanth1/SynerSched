@@ -8,8 +8,8 @@ class InheritedLocale extends InheritedWidget {
     super.key,
     required this.locale,
     required this.setLocale,
-    required Widget child,
-  }) : super(child: child);
+    required super.child,
+  });
 
   static InheritedLocale? of(BuildContext context) {
     return context.dependOnInheritedWidgetOfExactType<InheritedLocale>();

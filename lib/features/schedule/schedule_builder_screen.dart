@@ -35,7 +35,7 @@ class _ScheduleBuilderScreenState extends State<ScheduleBuilderScreen> {
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      bottomNavigationBar: CustomNavBar(currentIndex: 1, onTap: (index) {}),
+      bottomNavigationBar: CustomNavBar(currentIndex: 1),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(

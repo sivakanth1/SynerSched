@@ -32,7 +32,7 @@ class _GPAEstimatorScreenState extends State<GPAEstimatorScreen> {
         backgroundColor: const Color(0xFF0277BD),
         foregroundColor: Colors.white,
       ),
-      bottomNavigationBar: CustomNavBar(currentIndex: 1, onTap: (index) {}),
+      bottomNavigationBar: CustomNavBar(currentIndex: 1),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(

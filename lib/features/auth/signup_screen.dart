@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:syner_sched/localization/app_localizations.dart';
 import 'package:syner_sched/routes/app_routes.dart';
 
-import '../../shared/buildInputField.dart';
+import '../../shared/build_input_field.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
