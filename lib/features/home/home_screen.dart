@@ -1,23 +1,26 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:stream_chat/stream_chat.dart';
+import 'package:syner_sched/firebase/firestore_service.dart';
 import 'package:syner_sched/localization/app_localizations.dart';
 import 'package:syner_sched/routes/app_routes.dart';
 import 'package:syner_sched/shared/custom_app_bar.dart';
 import 'package:syner_sched/shared/custom_nav_bar.dart';
+import '../../firebase/task_service.dart';
+import '../../shared/encryption_helper.dart';
+import '../../shared/notification_service.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final StreamChatClient streamClient;
+  const HomeScreen({super.key, required this.streamClient});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final List<Map<String, dynamic>> _tasks = [
-    {'title': 'Test', 'datetime': DateTime(2025, 6, 18)},
-    {'title': 'Assignment 1', 'datetime': DateTime(2025, 6, 20)},
-    {'title': 'Project Proposal', 'datetime': DateTime(2025, 6, 24)},
-  ];
   final List<String> _scheduleItems = [
     "CSCI 6362 – 10:00 AM",
     "STAT 5300 – 1:30 PM",
@@ -28,10 +31,19 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getTasks();
+  }
+
+  void getTasks() async {
+    await TaskService.getUserTasks();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final localizer = AppLocalizations.of(context)!;
-
-    _tasks.sort((a, b) => a['datetime'].compareTo(b['datetime']));
 
     return Container(
       decoration: const BoxDecoration(
@@ -46,12 +58,15 @@ class _HomeScreenState extends State<HomeScreen> {
           actions: [
             Column(
               children: [
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 Text(
                   localizer.translate("welcome"),
+                  style: const TextStyle(color: Color(0xFF2D4F48)),
+                ),
+                const Text(
+                  'Siva 👋',
                   style: TextStyle(color: Color(0xFF2D4F48)),
                 ),
-                Text('Siva 👋', style: TextStyle(color: Color(0xFF2D4F48))),
               ],
             ),
             IconButton(
@@ -59,57 +74,59 @@ class _HomeScreenState extends State<HomeScreen> {
               onPressed: () {
                 Navigator.pushNamed(context, AppRoutes.notifications);
               },
-              color: Color(0xFF2D4F48),
+              color: const Color(0xFF2D4F48),
             ),
             IconButton(
               icon: const Icon(Icons.settings),
               onPressed: () {
                 Navigator.pushNamed(context, AppRoutes.settings);
               },
-              color: Color(0xFF2D4F48),
+              color: const Color(0xFF2D4F48),
             ),
           ],
         ),
         bottomNavigationBar: CustomNavBar(currentIndex: 0),
-
-        //Add Task Button
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () => _showAddTaskDialog(context),
           icon: const Icon(Icons.add),
           label: const Text("Add Task"),
-          backgroundColor: Color(0xFF5579f1),
+          backgroundColor: const Color(0xFF5579f1),
           foregroundColor: Colors.white,
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-
-        //Home Screen Contents
         body: SingleChildScrollView(
           child: Container(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // ElevatedButton(onPressed: (){
+                //   NotificationService().showNotification(id: 1, title: "Notification Title", body: "Notification Body");
+                // }, child: Text("Text Notification")),
+                const SizedBox(height: 30),
                 GestureDetector(
                   onTap: () {
-                    // Todo Navigate screen to Deadlines page
+                    // TODO: Navigate screen to Deadlines page
                   },
                   child: _buildUpcomingDeadlines(localizer),
                 ),
                 const SizedBox(height: 30),
-
-                // My Schedule with Build Button
                 GestureDetector(
                   onTap: () {
-                    // Todo Navigate screen to MySchedules page
+                    Navigator.pushReplacementNamed(
+                      context,
+                      AppRoutes.scheduleBuilder,
+                    );
                   },
                   child: _buildMyScheduleCard(localizer),
                 ),
                 const SizedBox(height: 30),
-
-                // Collaboration Highlights Card
                 GestureDetector(
                   onTap: () {
-                    // Todo Navigate screen to Collab page
+                    Navigator.pushReplacementNamed(
+                      context,
+                      AppRoutes.collabBoard,
+                    );
                   },
                   child: _buildCollaborationCard(localizer),
                 ),
@@ -118,6 +135,131 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildUpcomingDeadlines(AppLocalizations localizer) {
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: FirestoreService().getTasksStream(),
+      builder: (context, snapshot) {
+        final tasks = snapshot.data ?? [];
+
+        final now = DateTime.now();
+
+        // Filter out past deadlines
+        final upcomingTasks = tasks.where((task) {
+          final deadlineField = task['deadline'];
+          DateTime? deadline;
+
+          if (deadlineField is Timestamp) {
+            deadline = deadlineField.toDate();
+          } else if (deadlineField is String) {
+            deadline = DateTime.tryParse(deadlineField);
+          }
+
+          // Keep only future deadlines
+          return deadline != null && deadline.isAfter(now);
+        }).toList();
+
+        // Sort ascending
+        upcomingTasks.sort((a, b) {
+          final aDeadline = a['deadline'] is Timestamp
+              ? (a['deadline'] as Timestamp).toDate()
+              : DateTime.tryParse(a['deadline'].toString()) ?? DateTime.now();
+
+          final bDeadline = b['deadline'] is Timestamp
+              ? (b['deadline'] as Timestamp).toDate()
+              : DateTime.tryParse(b['deadline'].toString()) ?? DateTime.now();
+
+          return aDeadline.compareTo(bDeadline);
+        });
+
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const CircleAvatar(
+                    radius: 24,
+                    backgroundColor: Color(0xFFFF6E5A),
+                    child: Icon(Icons.calendar_month, color: Colors.white),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          localizer.translate("upcoming_deadlines"),
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const Text("Welcome"),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2D4F48),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Text(
+                      "Open",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              ...upcomingTasks.map((task) {
+                final deadlineField = task['deadline'];
+                late DateTime deadline;
+
+                if (deadlineField is Timestamp) {
+                  deadline = deadlineField.toDate();
+                } else if (deadlineField is String) {
+                  deadline = DateTime.tryParse(deadlineField) ?? DateTime.now();
+                } else {
+                  deadline = DateTime.now(); // fallback
+                }
+
+                final formatted = DateFormat(
+                  'MMM dd, hh:mm a',
+                ).format(deadline);
+                final decryptedTitle = EncryptionHelper.decryptText(
+                  task['title'],
+                  FirebaseAuth.instance.currentUser?.uid ?? '',
+                );
+
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(
+                    Icons.calendar_today_outlined,
+                    color: Color(0xFF2D4F48),
+                  ),
+                  title: Text(
+                    decryptedTitle,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  subtitle: Text(formatted),
+                );
+              }),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -140,17 +282,12 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      localizer.translate("my_schedule"),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  localizer.translate("my_schedule"),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
               Container(
@@ -188,78 +325,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildUpcomingDeadlines(AppLocalizations localizer) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const CircleAvatar(
-                radius: 24,
-                backgroundColor: Color(0xFFFF6E5A),
-                child: Icon(Icons.calendar_month, color: Colors.white),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      localizer.translate("upcoming_deadlines"),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const Text("Welcome"),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF2D4F48),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Text(
-                  "Open",
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          ..._tasks.map((task) {
-            final formatted = DateFormat(
-              'MMM dd, hh:mm a',
-            ).format(task['datetime']);
-            return ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(
-                Icons.calendar_today_outlined,
-                color: Color(0xFF2D4F48),
-              ),
-              title: Text(
-                task['title'],
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-              subtitle: Text(formatted),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
   Widget _buildCollaborationCard(AppLocalizations localizer) {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -279,35 +344,26 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      localizer.translate("collab_highlights"),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  localizer.translate("collab_highlights"),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          ..._collabData.map((item) {
-            return ListTile(
+          ..._collabData.map(
+            (item) => ListTile(
               contentPadding: EdgeInsets.zero,
-              // leading: const Icon(
-              //   Icons.check_circle_outline,
-              //   color: Color(0xFF2D4F48),
-              // ),
               title: Text(
                 item,
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
-            );
-          }),
+            ),
+          ),
         ],
       ),
     );
@@ -330,6 +386,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   TextField(
                     controller: titleController,
+                    keyboardType: TextInputType.name,
                     decoration: const InputDecoration(
                       labelText: "Task Title",
                       border: OutlineInputBorder(),
@@ -380,23 +437,55 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: const Text("Cancel"),
                 ),
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (titleController.text.isNotEmpty &&
                         selectedDate != null &&
                         selectedTime != null) {
-                      final dateTime = DateTime(
+                      final deadline = DateTime(
                         selectedDate!.year,
                         selectedDate!.month,
                         selectedDate!.day,
                         selectedTime!.hour,
                         selectedTime!.minute,
                       );
-                      setState(() {
-                        _tasks.add({
-                          'title': titleController.text,
-                          'datetime': dateTime,
-                        });
-                      });
+
+                      // Save task to Firebase...
+                      await FirestoreService().addTask(
+                        titleController.text,
+                        deadline,
+                      );
+
+                      // Schedule reminders
+                      final notifService = NotificationService();
+                      await notifService.scheduleNotification(
+                        id:
+                            deadline.millisecondsSinceEpoch ~/
+                            1000, // unique id
+                        title: "Upcoming Task",
+                        body: "${titleController.text} is due in 1 hour",
+                        scheduledTime: deadline.subtract(
+                          const Duration(hours: 1),
+                        ),
+                      );
+
+                      await notifService.scheduleNotification(
+                        id: deadline.millisecondsSinceEpoch ~/ 1000 + 1,
+                        title: "Upcoming Task",
+                        body: "${titleController.text} is due in 30 minutes",
+                        scheduledTime: deadline.subtract(
+                          const Duration(minutes: 30),
+                        ),
+                      );
+
+                      await notifService.scheduleNotification(
+                        id: deadline.millisecondsSinceEpoch ~/ 1000 + 2,
+                        title: "Upcoming Task",
+                        body: "${titleController.text} is due in 15 minutes",
+                        scheduledTime: deadline.subtract(
+                          const Duration(minutes: 15),
+                        ),
+                      );
+
                       Navigator.pop(context);
                     }
                   },

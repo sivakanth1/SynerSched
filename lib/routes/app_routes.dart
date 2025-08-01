@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:stream_chat/stream_chat.dart';
 import 'package:syner_sched/features/collab_match/collab_board_screen.dart';
 import 'package:syner_sched/features/profile/profile_screen.dart';
+import 'package:syner_sched/features/schedule/course_selection_screen.dart';
 import 'package:syner_sched/features/schedule/schedule_builder_screen.dart';
-
 import '../features/auth/login_screen.dart';
 import '../features/auth/signup_screen.dart';
 import '../features/collab_match/chat_detail_screen.dart';
@@ -25,26 +26,38 @@ class AppRoutes {
   static const String scheduleResult = '/scheduleResultScreen';
   static const String collabBoard = '/collabBoardScreen';
   static const String newCollab = '/new-collab';
-  static const String chatDetail = '/chat';
+  static const String chatScreen = '/chat';
   static const String editProfile = '/edit-profile';
   static const String gpaEstimator = '/gpa-estimator';
   static const String notifications = '/notifications';
   static const String settings = '/settings';
+  static const String courseSelection = '/course-selection';
 
-  static Map<String, WidgetBuilder> routes = {
-    onboarding: (_) => const OnboardingScreen(),
-    login: (_) => const LoginScreen(),
-    signup: (_) => const SignupScreen(),
-    home: (_) => const HomeScreen(),
-    profile: (_) => const ProfileScreen(),
-    scheduleBuilder: (_) => const ScheduleBuilderScreen(),
-    scheduleResult: (_) => const ScheduleResultScreen(),
-    collabBoard: (_) => const CollabBoardScreen(),
-    newCollab: (_) => const NewCollabScreen(),
-    chatDetail: (_) => const ChatDetailScreen(),
-    editProfile: (_) => const EditProfileScreen(),
-    gpaEstimator: (_) => const GPAEstimatorScreen(),
-    notifications: (_) => const NotificationsScreen(),
-    settings: (_) => const SettingsScreen(),
-  };
+  static Map<String, WidgetBuilder> routesWithStreamClient(
+      StreamChatClient client) {
+    return {
+      onboarding: (_) => const OnboardingScreen(),
+      login: (_) => const LoginScreen(),
+      signup: (_) => const SignupScreen(),
+      home: (_) => HomeScreen(streamClient: client,),
+      profile: (_) => const ProfileScreen(),
+      scheduleBuilder: (_) => const ScheduleBuilderScreen(),
+      scheduleResult: (_) => const ScheduleResultScreen(),
+      collabBoard: (_) => CollabBoardScreen(),
+      newCollab: (_) => NewCollabScreen(streamClient: client),
+      chatScreen: (context) {
+        final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+        return ChatDetailScreen(
+          streamClient: client,
+          collabId: args['collabId'],
+          collabName: args['collabName'],
+        );
+      },
+      editProfile: (_) => const EditProfileScreen(),
+      gpaEstimator: (_) => const GPAEstimatorScreen(),
+      notifications: (_) => const NotificationsScreen(),
+      settings: (_) => const SettingsScreen(),
+      courseSelection: (_) => const CourseSelectionScreen(),
+    };
+  }
 }

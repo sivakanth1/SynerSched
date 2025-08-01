@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:syner_sched/localization/app_localizations.dart';
 import 'package:syner_sched/localization/inherited_locale.dart';
 import 'package:syner_sched/routes/app_routes.dart';
@@ -15,6 +16,43 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _hidePassword = true;
+  bool _isLoading = false;
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  Future<void> _login() async {
+    setState(() => _isLoading = true);
+    try {
+      await _auth.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      // Navigate to home on successful login
+      Navigator.pushReplacementNamed(context, AppRoutes.home);
+    } on FirebaseAuthException catch (e) {
+      String message;
+      switch (e.code) {
+        case 'user-not-found':
+          message = "No user found for that email.";
+          break;
+        case 'wrong-password':
+          message = "Incorrect password.";
+          break;
+        case 'invalid-email':
+          message = "Invalid email format.";
+          break;
+        default:
+          message = "Login failed. Please try again.";
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,11 +75,8 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Logo
                   Image.asset('assets/images/app_icon_teal.png', height: 250),
                   const SizedBox(height: 20),
-
-                  // App Title
                   const Text(
                     "SynerSched",
                     style: TextStyle(
@@ -53,8 +88,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 30),
 
-                  // Email Field
                   buildInputField(
+                    keyboardType: TextInputType.emailAddress,
                     controller: _emailController,
                     hint: localizer.translate("email"),
                     icon: Icons.email_outlined,
@@ -62,8 +97,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Password Field
                   buildInputField(
+                    keyboardType: TextInputType.visiblePassword,
                     controller: _passwordController,
                     hint: localizer.translate("password"),
                     icon: Icons.lock_outline,
@@ -74,12 +109,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 10),
 
-                  // Forgot Password Link
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: () {
-                        // TODO: Navigate to forgot password screen or show a dialog
+                        // Optional: Forgot password
                       },
                       child: Text(
                         localizer.translate('forgot_password'),
@@ -93,10 +127,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
-                        // TODO: Add login logic
-                        Navigator.pushReplacementNamed(context, AppRoutes.home);
-                      },
+                      onPressed: _isLoading ? null : _login,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF2D4F48),
                         padding: const EdgeInsets.symmetric(vertical: 14),
@@ -104,7 +135,13 @@ class _LoginScreenState extends State<LoginScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: Text(
+                      child: _isLoading
+                          ? const CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Colors.white,
+                        ),
+                      )
+                          : Text(
                         localizer.translate('login'),
                         style: const TextStyle(
                           fontSize: 18,
@@ -115,7 +152,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Sign Up Link
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -138,7 +174,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
 
-                  // Language toggle
                   TextButton(
                     onPressed: () {
                       final newLocale = isEnglish

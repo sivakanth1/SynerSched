@@ -1,16 +1,31 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:syner_sched/localization/app_localizations.dart';
 import 'package:syner_sched/routes/app_routes.dart';
+import 'package:syner_sched/shared/notification_service.dart';
 import 'package:syner_sched/shared/theme.dart';
-
+import 'package:firebase_core/firebase_core.dart';
+import 'features/splash/splash_screen.dart';
+import 'firebase_options.dart';
 import 'localization/inherited_locale.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:stream_chat_flutter/stream_chat_flutter.dart' as stream;
+import 'package:cloud_functions/cloud_functions.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // lock portraitawait
-  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  FirebaseFirestore.instance.settings = const Settings(
+    persistenceEnabled: true,
+    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+  );
+  tz.initializeTimeZones();
+  NotificationService().initialize();
+
   runApp(const MyApp());
 }
 
@@ -45,8 +60,7 @@ class _MyAppState extends State<MyApp> {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      routes: AppRoutes.routes,
-      initialRoute: AppRoutes.onboarding,
+      home: SplashScreen(setLocale: _setLocale),
       builder: (context, child) {
         return InheritedLocale(
           locale: _locale,

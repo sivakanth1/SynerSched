@@ -1,106 +1,194 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:syner_sched/shared/custom_nav_bar.dart';
-import 'package:syner_sched/localization/app_localizations.dart';
 import '../../routes/app_routes.dart';
 
-class CollabBoardScreen extends StatelessWidget {
+class CollabBoardScreen extends StatefulWidget {
+
   const CollabBoardScreen({super.key});
+  @override
+  State<CollabBoardScreen> createState() => _CollabBoardScreenState();
+}
+
+class _CollabBoardScreenState extends State<CollabBoardScreen> {
+  final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+
+  Stream<QuerySnapshot> getCollabStream() {
+    return FirebaseFirestore.instance
+        .collection('collaborations')
+        .orderBy('createdAt', descending: true)
+        .snapshots();
+  }
+
+  Future<void> _joinCollab(String collabId, String collabName, List members) async {
+    if (currentUserId == null) return;
+
+    if (!members.contains(currentUserId)) {
+      await FirebaseFirestore.instance.collection('collaborations').doc(collabId).update({
+        'members': FieldValue.arrayUnion([currentUserId])
+      });
+    }
+
+    // Navigate to chat screen later
+    Navigator.pushNamed(
+      context,
+      AppRoutes.chatScreen,
+      arguments: {
+        'collabId': collabId,
+        'collabName': collabName, // pass from the caller or store locally
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final localizer = AppLocalizations.of(context)!;
-    final List<Map<String, dynamic>> projects = [
-      {
-        "title": "Machine Learning Capstone",
-        "description": "3 new messages • 5 members",
-        "unread": true,
-      },
-      {
-        "title": "UX Research Group",
-        "description": "Next meeting on Friday • 3 members",
-        "unread": false,
-      },
-      {
-        "title": "Cybersecurity Audit Team",
-        "description": "Proposal shared • 4 members",
-        "unread": false,
-      },
-    ];
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(localizer.translate("collab_board")),
-        backgroundColor: const Color(0xFF0277BD),
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          // TODO: Navigate to NewCollabScreen
-          Navigator.pushNamed(context, AppRoutes.newCollab);
-        },
-        icon: const Icon(Icons.group_add, color: Colors.green),
-        label: Text(
-          localizer.translate("new_collab"),
-          style: TextStyle(color: Colors.white),
+    return Container(
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage("assets/images/app_background.jpg"),
+          fit: BoxFit.fill,
         ),
-        backgroundColor: Colors.blue.shade800,
       ),
-      bottomNavigationBar: CustomNavBar(currentIndex: 2),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF0277BD), Color(0xFF03A9F4)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+      child: Scaffold(
+        bottomNavigationBar: const CustomNavBar(currentIndex: 2),
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          centerTitle: true,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Color(0xFF2D4F48)),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: const Text(
+            "Collaboration Board",
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF2D4F48),
+            ),
           ),
         ),
-        child: ListView.separated(
-          padding: const EdgeInsets.all(16),
-          itemCount: projects.length,
-          separatorBuilder: (_, _) => const SizedBox(height: 12),
-          itemBuilder: (context, index) {
-            final item = projects[index];
-            return Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              color: Colors.white.withValues(alpha: 0.95),
-              elevation: 3,
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: item["unread"]
-                      ? Colors.redAccent
-                      : Colors.grey.shade300,
-                  child: const Icon(Icons.group, color: Colors.white),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: StreamBuilder<QuerySnapshot>(
+                    stream: getCollabStream(),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+
+                      final collabs = snapshot.data!.docs;
+
+                      if (collabs.isEmpty) {
+                        return const Center(child: Text("No collaborations yet."));
+                      }
+
+                      return ListView.builder(
+                        itemCount: collabs.length,
+                        itemBuilder: (context, index) {
+                          final doc = collabs[index];
+                          final data = doc.data() as Map<String, dynamic>;
+                          final title = data['title'] ?? 'Untitled';
+                          final description = data['description'] ?? '';
+                          final members = List<String>.from(data['members'] ?? []);
+                          final memberCount = members.length;
+
+                          return _CollabCard(
+                            title: title,
+                            subtitle: "$description • $memberCount members",
+                            onTap: () => _joinCollab(doc.id,title, members),
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
-                title: Text(
-                  item["title"],
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                subtitle: Text(item["description"]),
-                trailing: ElevatedButton(
-                  onPressed: () {
-                    // TODO: Navigate to chat or detail screen
-                    Navigator.pushNamed(context, AppRoutes.chatDetail);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.group_add, color: Colors.white),
+                    label: const Text(
+                      "New Collab",
+                      style: TextStyle(fontSize: 18, color: Colors.white),
                     ),
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                    onPressed: () {
+                      Navigator.pushNamed(context, AppRoutes.newCollab);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2D4F48),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                     ),
                   ),
-                  child: Text(localizer.translate("open")),
                 ),
-              ),
-            );
-          },
+                const SizedBox(height: 12),
+              ],
+            ),
+          ),
         ),
+      ),
+    );
+  }
+}
+
+class _CollabCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const _CollabCard({
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 0,
+      margin: const EdgeInsets.only(bottom: 16),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+        leading: const CircleAvatar(
+          radius: 24,
+          backgroundColor: Color(0xFFE5F7EA),
+          child: Icon(Icons.groups, color: Color(0xFF2D4F48)),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+            color: Color(0xFF2D4F48),
+          ),
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(
+            subtitle,
+            style: const TextStyle(color: Colors.black87),
+          ),
+        ),
+        trailing: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          decoration: BoxDecoration(
+            color: const Color(0xFF2D4F48),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: const Text("Open", style: TextStyle(color: Colors.white)),
+        ),
+        onTap: onTap,
       ),
     );
   }

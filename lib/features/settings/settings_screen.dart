@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:syner_sched/localization/app_localizations.dart';
 import 'package:syner_sched/shared/custom_nav_bar.dart';
 
+import '../../firebase/auth_service.dart';
 import '../../localization/inherited_locale.dart';
+import '../../routes/app_routes.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -123,8 +125,19 @@ class SettingsScreen extends StatelessWidget {
                 icon: Icons.logout,
                 title: localizer.translate('logout'),
                 subtitle: "",
-                onTap: () {
-                  Navigator.pushReplacementNamed(context, '/login');
+                onTap: () async {
+                  await AuthService.logout();
+
+                  // Show snack for visual confirmation (optional)
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("You have been logged out")),
+                  );
+
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    AppRoutes.onboarding,
+                        (route) => false,
+                  );
                 },
               ),
             ],

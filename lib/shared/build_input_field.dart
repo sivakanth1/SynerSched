@@ -4,10 +4,12 @@ Widget buildInputField({
   required TextEditingController controller,
   required String hint,
   required IconData icon,
+  required TextInputType keyboardType,
   bool obscureText = false,
   VoidCallback? toggle,
 }) {
   return TextField(
+    keyboardType: keyboardType,
     controller: controller,
     obscureText: obscureText,
     decoration: InputDecoration(

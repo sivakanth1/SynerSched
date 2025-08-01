@@ -1,5 +1,11 @@
+import 'dart:io';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:syner_sched/routes/app_routes.dart';
+
+import '../features/collab_match/collab_board_screen.dart';
+import '../firebase/schedule_service.dart';
 
 class CustomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -11,7 +17,7 @@ class CustomNavBar extends StatelessWidget {
     Future<bool> checkScheduleExists() async {
       // In future: fetch from local storage or server
       // For now: mock value
-      return Future.value(true); // or false to simulate no schedule
+      return Future.value(false); // or false to simulate no schedule
     }
 
     return Container(
@@ -42,7 +48,7 @@ class CustomNavBar extends StatelessWidget {
           fontWeight: FontWeight.w500,
         ),
         unselectedLabelStyle: const TextStyle(fontSize: 12),
-        onTap: (index) {
+        onTap: (index) async {
           // Optional: Handle navigation globally
           switch (index) {
             case 0:
@@ -50,16 +56,20 @@ class CustomNavBar extends StatelessWidget {
               break;
             case 1:
               // Schedule tab
-              checkScheduleExists().then((exists) {
-                Navigator.pushNamed(
-                  context,
-                  exists ? AppRoutes.scheduleResult : AppRoutes.scheduleBuilder,
-                );
-              });
+              Navigator.pushReplacementNamed(context, AppRoutes.scheduleResult);
+              // final hasSchedule = await ScheduleService.hasSchedule();
+              // Navigator.pushReplacementNamed(
+              //   context,
+              //   hasSchedule ? AppRoutes.scheduleResult : AppRoutes.scheduleBuilder,
+              // );
               break;
             case 2:
               // Collab tab
-              Navigator.pushNamed(context, AppRoutes.collabBoard);
+              if(Platform.isIOS) {
+                Navigator.push(context,CupertinoSheetRoute(builder: (context) => CollabBoardScreen()));
+              }else {
+                Navigator.pushNamed(context, AppRoutes.collabBoard);
+              }
               break;
             case 3:
               // Profile tab
