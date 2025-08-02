@@ -1,63 +1,68 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart' as stream;
 import 'package:syner_sched/routes/app_routes.dart';
+import 'package:syner_sched/shared/stream_helper.dart'; // ✅ use helper
 
 class SplashScreen extends StatefulWidget {
   final Function(Locale) setLocale;
-  const SplashScreen({super.key, required this.setLocale});
+  final stream.StreamChatClient streamClient;
+
+  const SplashScreen({
+    super.key,
+    required this.setLocale,
+    required this.streamClient,
+  });
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  final stream.StreamChatClient _streamClient = stream.StreamChatClient(
-    '7wm225mwe4kg',
-    logLevel: stream.Level.INFO,
-  );
+  bool _hasSetupRun = false;
 
   @override
   void initState() {
     super.initState();
-    _setup();
+    _safeSetupOnce();
+  }
+
+  Future<void> _safeSetupOnce() async {
+    if (_hasSetupRun) return;
+    _hasSetupRun = true;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _setup();
+    });
   }
 
   Future<void> _setup() async {
-    try {
-      final user = await FirebaseAuth.instance.authStateChanges().firstWhere((u) => u != null);
-      final userId = user?.uid;
-      final name = user?.displayName ?? "User";
+    debugPrint("🚀 Splash _setup() started");
 
-      print('✅ Firebase user: $userId');
+    final user = FirebaseAuth.instance.currentUser;
 
-      // 🔄 Refresh token before calling the function
-      await user?.getIdToken(true);
-
-      final callable = FirebaseFunctions.instanceFor(region: 'us-central1')
-          .httpsCallable('getStreamToken');
-      final result = await callable();
-      final token = result.data['token'];
-
-      await _streamClient.connectUser(stream.User(id: userId.toString(), name: name), token);
-      print('✅ Stream user connected.');
-
-      // ✅ Navigate to Home
-      Navigator.pushReplacementNamed(
-        context,
-        AppRoutes.home,
-        arguments: _streamClient,
-      );
-    } catch (e) {
-      print('❌ Error during setup: $e');
-
-      // Navigate to onboarding if unauthenticated
-      Navigator.pushReplacementNamed(
-        context,
-        AppRoutes.onboarding,
-      );
+    if (user == null) {
+      debugPrint("👤 Firebase currentUser: null");
+      debugPrint("🔁 No user logged in → go to onboarding");
+      _navigateTo(AppRoutes.onboarding);
+      return;
     }
+
+    try {
+      await StreamConnectionHelper.ensureConnected(widget.streamClient);
+      debugPrint("✅ Stream connected → go to home");
+      _navigateTo(AppRoutes.home);
+    } catch (e) {
+      debugPrint("❌ Stream connection error: $e");
+      _navigateTo(AppRoutes.onboarding);
+    }
+  }
+
+  void _navigateTo(String route) {
+    if (!mounted) return;
+    Future.microtask(() {
+      Navigator.pushReplacementNamed(context, route);
+    });
   }
 
   @override

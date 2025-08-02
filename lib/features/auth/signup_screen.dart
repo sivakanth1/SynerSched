@@ -3,6 +3,7 @@ import 'package:syner_sched/localization/app_localizations.dart';
 import 'package:syner_sched/routes/app_routes.dart';
 import 'package:syner_sched/firebase/auth_service.dart';
 import '../../shared/build_input_field.dart';
+import '../profile/edit_profile_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -67,7 +68,12 @@ class _SignupScreenState extends State<SignupScreen> {
     setState(() => _isLoading = false);
 
     if (user != null) {
-      Navigator.pushReplacementNamed(context, AppRoutes.home);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const EditProfileScreen(fromSignup: true),
+        ),
+      );
     } else {
       setState(() {
         _error = localizer.translate("signup_failed");

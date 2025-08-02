@@ -1,16 +1,22 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:stream_chat_flutter/stream_chat_flutter.dart' as stream;
+import '../../routes/app_routes.dart';
 
 class EditProfileScreen extends StatefulWidget {
-  const EditProfileScreen({super.key});
+  final bool fromSignup;
+  const EditProfileScreen({super.key, this.fromSignup =false});
 
   @override
   State<EditProfileScreen> createState() => _EditProfileScreenState();
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final _nameController = TextEditingController(text: "Siva Kondamadugula");
-  final _yearController = TextEditingController(text: "2nd Year");
+  final _nameController = TextEditingController();
+  final _yearController = TextEditingController();
   final _skillController = TextEditingController();
+  final _interestsController = TextEditingController();
 
   String? _selectedDepartment = "Computer Science";
   List<String> _departments = [
@@ -81,14 +87,58 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 onPressed: () => _addSkill(_skillController.text),
               ),
             ),
+            const SizedBox(height: 16),
+
+            _buildLabel("Interests"),
+            _buildTextField(_interestsController, hint: "Enter your Interests"),
             const SizedBox(height: 32),
 
             // Save Button
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: () {
-                  // Handle save
+                onPressed: () async {
+                  final uid = FirebaseAuth.instance.currentUser?.uid;
+                  if (uid == null) return;
+
+                  try {
+                    FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(uid)
+                        .collection('profile')
+                        .doc('info') // <- you can name this anything; 'info' is a good default
+                        .set({
+                      'name': _nameController.text,
+                      'department': _selectedDepartment,
+                      'year': _yearController.text,
+                      'skills': _skills,
+                      'interests': _interestsController.text.split(','),
+                    });
+
+                    // Optional: update Stream Chat name
+                    try {
+                      final streamClient = stream.StreamChat.of(context).client;
+                      await streamClient.updateUser(
+                        stream.User(id: uid, name: _nameController.text.trim()),
+                      );
+                    } catch (e) {
+                      debugPrint("⚠️ Failed to update Stream name: $e");
+                    }
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Profile updated')),
+                    );
+
+                    if (widget.fromSignup) {
+                      Navigator.pushReplacementNamed(context, AppRoutes.home);
+                    } else {
+                      Navigator.pop(context); // just go back to ProfileScreen
+                    }
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error saving profile: $e')),
+                    );
+                  }
                 },
                 icon: const Icon(Icons.check),
                 label: const Text("Save"),

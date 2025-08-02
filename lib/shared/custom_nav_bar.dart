@@ -1,16 +1,10 @@
-import 'dart:io';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:syner_sched/routes/app_routes.dart';
-
-import '../features/collab_match/collab_board_screen.dart';
-import '../firebase/schedule_service.dart';
 
 class CustomNavBar extends StatelessWidget {
   final int currentIndex;
+  final Function(int)? onTap;
 
-  const CustomNavBar({super.key, required this.currentIndex});
+  const CustomNavBar({super.key, required this.currentIndex, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -48,58 +42,67 @@ class CustomNavBar extends StatelessWidget {
           fontWeight: FontWeight.w500,
         ),
         unselectedLabelStyle: const TextStyle(fontSize: 12),
-        onTap: (index) async {
-          // Optional: Handle navigation globally
-          switch (index) {
-            case 0:
-              Navigator.pushReplacementNamed(context, AppRoutes.home);
-              break;
-            case 1:
-              // Schedule tab
-              Navigator.pushReplacementNamed(context, AppRoutes.scheduleResult);
-              // final hasSchedule = await ScheduleService.hasSchedule();
-              // Navigator.pushReplacementNamed(
-              //   context,
-              //   hasSchedule ? AppRoutes.scheduleResult : AppRoutes.scheduleBuilder,
-              // );
-              break;
-            case 2:
-              // Collab tab
-              if(Platform.isIOS) {
-                Navigator.push(context,CupertinoSheetRoute(builder: (context) => CollabBoardScreen()));
-              }else {
-                Navigator.pushNamed(context, AppRoutes.collabBoard);
-              }
-              break;
-            case 3:
-              // Profile tab
-              Navigator.pushNamed(context, AppRoutes.profile);
-              break;
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            label: 'Home',
-            activeIcon: Icon(Icons.home_rounded),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_month_outlined),
-            label: 'Schedule',
-            activeIcon: Icon(Icons.calendar_month),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.group_outlined),
-            label: 'Collab',
-            activeIcon: Icon(Icons.group),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outlined),
-            label: 'Profile',
-            activeIcon: Icon(Icons.person),
-          ),
-        ],
+      onTap: onTap, // use callback
+      items: const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home_outlined),
+          label: 'Home',
+          activeIcon: Icon(Icons.home_rounded),
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.calendar_month_outlined),
+          label: 'Schedule',
+          activeIcon: Icon(Icons.calendar_month),
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.group_outlined),
+          label: 'Collab',
+          activeIcon: Icon(Icons.group),
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.person_outlined),
+          label: 'Profile',
+          activeIcon: Icon(Icons.person),
+        ),
+      ],
       ),
     );
   }
 }
+
+// class CustomNavBar extends StatelessWidget {
+//   final int currentIndex;
+//   final Function(int)? onTap;
+//
+//   const CustomNavBar({super.key, required this.currentIndex, this.onTap});
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return BottomNavigationBar(
+//       currentIndex: currentIndex,
+//       onTap: onTap, // use callback
+//       items: const [
+//         BottomNavigationBarItem(
+//           icon: Icon(Icons.home_outlined),
+//           label: 'Home',
+//           activeIcon: Icon(Icons.home_rounded),
+//         ),
+//         BottomNavigationBarItem(
+//           icon: Icon(Icons.calendar_month_outlined),
+//           label: 'Schedule',
+//           activeIcon: Icon(Icons.calendar_month),
+//         ),
+//         BottomNavigationBarItem(
+//           icon: Icon(Icons.group_outlined),
+//           label: 'Collab',
+//           activeIcon: Icon(Icons.group),
+//         ),
+//         BottomNavigationBarItem(
+//           icon: Icon(Icons.person_outlined),
+//           label: 'Profile',
+//           activeIcon: Icon(Icons.person),
+//         ),
+//       ],
+//     );
+//   }
+// }

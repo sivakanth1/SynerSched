@@ -5,6 +5,7 @@ import 'package:syner_sched/shared/custom_nav_bar.dart';
 import '../../firebase/auth_service.dart';
 import '../../localization/inherited_locale.dart';
 import '../../routes/app_routes.dart';
+import '../../shared/notification_service.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -132,6 +133,8 @@ class SettingsScreen extends StatelessWidget {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text("You have been logged out")),
                   );
+
+                  await NotificationService().cancelAllNotifications();
 
                   Navigator.pushNamedAndRemoveUntil(
                     context,

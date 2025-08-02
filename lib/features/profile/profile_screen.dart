@@ -1,12 +1,30 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:syner_sched/routes/app_routes.dart';
 import 'package:syner_sched/shared/custom_button.dart';
 import 'package:syner_sched/shared/custom_nav_bar.dart';
 
 import '../../firebase/auth_service.dart';
+import '../../shared/notification_service.dart';
+import '../../shared/stream_helper.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
+
+  Future<Map<String, dynamic>?> _getProfileData() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return null;
+
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .collection('profile')
+        .doc('info')
+        .get();
+
+    return doc.data();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +37,7 @@ class ProfileScreen extends StatelessWidget {
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        bottomNavigationBar: CustomNavBar(currentIndex: 3,),
+        //bottomNavigationBar: const CustomNavBar(currentIndex: 3),
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
@@ -42,44 +60,54 @@ class ProfileScreen extends StatelessWidget {
           ),
         ),
         body: SafeArea(
-          child: Stack(
-            children: [
-              SingleChildScrollView(
+          child: FutureBuilder<Map<String, dynamic>?>(
+            future: _getProfileData(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              if (!snapshot.hasData || snapshot.data == null) {
+                return const Center(child: Text("No profile data found."));
+              }
+
+              final data = snapshot.data!;
+              final name = data['name'] ?? "No name";
+              final department = data['department'] ?? "Unknown Department";
+              final year = data['year'] ?? "Unknown Year";
+              final skills = List<String>.from(data['skills'] ?? []);
+              final interests = data['interests'] ?? "No interests";
+
+              return SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const SizedBox(height: 24),
-                    // Profile Photo Placeholder
-                    CircleAvatar(
+                    const CircleAvatar(
                       radius: 50,
-                      backgroundColor: const Color(0xFFDDCFFC),
-                      child: const Icon(Icons.person, size: 50, color: Colors.white),
+                      backgroundColor: Color(0xFFDDCFFC),
+                      child: Icon(Icons.person, size: 50, color: Colors.white),
                     ),
                     const SizedBox(height: 16),
-
-                    // Name
-                    const Text(
-                      "Siva Kondamadugula",
-                      style: TextStyle(
+                    Text(
+                      name,
+                      style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF2D4F48),
                       ),
                     ),
                     const SizedBox(height: 4),
-
-                    // Department + Year
-                    const Text(
-                      "Computer Science • 2nd Year",
-                      style: TextStyle(
+                    Text(
+                      "$department • $year",
+                      style: const TextStyle(
                         fontSize: 16,
                         color: Colors.black87,
                       ),
                     ),
                     const SizedBox(height: 24),
 
-                    // Skills
                     const Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
@@ -94,15 +122,10 @@ class ProfileScreen extends StatelessWidget {
                     Wrap(
                       spacing: 10,
                       runSpacing: 8,
-                      children: const [
-                        _SkillChip("Flutter"),
-                        _SkillChip("Machine Learning"),
-                        _SkillChip("Firebase"),
-                      ],
+                      children: skills.map((skill) => _SkillChip(skill)).toList(),
                     ),
                     const SizedBox(height: 24),
 
-                    // Interests
                     const Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
@@ -114,32 +137,31 @@ class ProfileScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      "Building smart campus apps, automation, and AI in education.",
+                    Text(
+                      "$interests",
                       style: TextStyle(fontSize: 14, color: Colors.black87),
                     ),
                     const SizedBox(height: 40),
 
-                    // Logout Button
-                    buildCustomButton(context,() async{
+                    buildCustomButton(context, () async {
                       await AuthService.logout();
-
-                      // Show snack for visual confirmation (optional)
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text("You have been logged out")),
                       );
+
+                      await NotificationService().cancelAllNotifications();
 
                       Navigator.pushNamedAndRemoveUntil(
                         context,
                         AppRoutes.onboarding,
                             (route) => false,
                       );
-                    },const Icon(Icons.logout),const Text("Logout")),
+                    }, const Icon(Icons.logout), const Text("Logout")),
                     const SizedBox(height: 24),
                   ],
                 ),
-              ),
-            ],
+              );
+            },
           ),
         ),
       ),

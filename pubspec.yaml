@@ -46,6 +46,7 @@ dependencies:
   stream_chat_flutter_core: ^9.15.0
   stream_chat: ^9.15.0
   cloud_functions: ^6.0.0
+  http: ^1.2.1
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

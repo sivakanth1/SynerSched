@@ -38,6 +38,16 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   Locale _locale = const Locale('en');
+  late final stream.StreamChatClient _streamClient;
+
+  @override
+  void initState() {
+    super.initState();
+    _streamClient = stream.StreamChatClient(
+      'wrdqf8s3gjmh', // 👈 Use your real API key
+      logLevel: stream.Level.INFO,
+    );
+  }
 
   void _setLocale(Locale locale) {
     setState(() {
@@ -60,13 +70,31 @@ class _MyAppState extends State<MyApp> {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      home: SplashScreen(setLocale: _setLocale),
+      restorationScopeId: 'root',
       builder: (context, child) {
         return InheritedLocale(
           locale: _locale,
           setLocale: _setLocale,
-          child: child!,
+          child: stream.StreamChat(
+            client: _streamClient,
+            child: stream.StreamChatTheme(
+              data: stream.StreamChatThemeData(),
+              child: child!,
+            ),
+          ),
         );
+      },
+      home: SplashScreen(setLocale: _setLocale, streamClient: _streamClient),
+      onGenerateRoute: (settings) {
+        final routes = AppRoutes.routesWithStreamClient(_streamClient);
+        final builder = routes[settings.name];
+        if (builder != null) {
+          return MaterialPageRoute(
+            builder: (context) => builder(context),
+            settings: settings,
+          );
+        }
+        return null;
       },
     );
   }

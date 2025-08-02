@@ -100,4 +100,12 @@ class NotificationService {
       SnackBar(content: Text("Error scheduling notification: ${e.toString()}"));
     }
   }
+
+  Future<void> cancelAllNotifications() async {
+    await _notificationsPlugin.cancelAll();
+  }
+
+  Future<void> cancelNotification(int id) async {
+    await _notificationsPlugin.cancel(id);
+  }
 }

@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
 import '../shared/encryption_helper.dart';
 
 class FirestoreService {
@@ -58,6 +57,14 @@ class FirestoreService {
         .doc(uid)
         .collection('classes')
         .orderBy('day')
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) => doc.data()).toList());
+  }
+
+  Stream<List<Map<String, dynamic>>> getUserJoinedCollaborations(String uid) {
+    return FirebaseFirestore.instance
+        .collection('collaborations')
+        .where('members', arrayContains: uid)
         .snapshots()
         .map((snapshot) => snapshot.docs.map((doc) => doc.data()).toList());
   }

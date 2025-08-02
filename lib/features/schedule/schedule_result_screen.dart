@@ -64,7 +64,6 @@ class _ScheduleResultScreenState extends State<ScheduleResultScreen> {
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        bottomNavigationBar: const CustomNavBar(currentIndex: 1),
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),

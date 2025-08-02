@@ -7,10 +7,10 @@ import 'package:syner_sched/firebase/firestore_service.dart';
 import 'package:syner_sched/localization/app_localizations.dart';
 import 'package:syner_sched/routes/app_routes.dart';
 import 'package:syner_sched/shared/custom_app_bar.dart';
-import 'package:syner_sched/shared/custom_nav_bar.dart';
 import '../../firebase/task_service.dart';
 import '../../shared/encryption_helper.dart';
 import '../../shared/notification_service.dart';
+import '../../shared/tab_controller_provider.dart';
 
 class HomeScreen extends StatefulWidget {
   final StreamChatClient streamClient;
@@ -21,13 +21,10 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  String uid = '';
   final List<String> _scheduleItems = [
     "CSCI 6362 – 10:00 AM",
     "STAT 5300 – 1:30 PM",
-  ];
-  final List<String> _collabData = [
-    "Machine Learning Capstone – 3 new messages",
-    "UX Research Group – Meeting on Friday",
   ];
 
   @override
@@ -35,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // TODO: implement initState
     super.initState();
     getTasks();
+    uid = FirebaseAuth.instance.currentUser!.uid;
   }
 
   void getTasks() async {
@@ -85,7 +83,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
         ),
-        bottomNavigationBar: CustomNavBar(currentIndex: 0),
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () => _showAddTaskDialog(context),
           icon: const Icon(Icons.add),
@@ -106,27 +103,21 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 30),
                 GestureDetector(
                   onTap: () {
-                    // TODO: Navigate screen to Deadlines page
+                    TabControllerProvider.tabIndex.value = 1;
                   },
                   child: _buildUpcomingDeadlines(localizer),
                 ),
                 const SizedBox(height: 30),
                 GestureDetector(
                   onTap: () {
-                    Navigator.pushReplacementNamed(
-                      context,
-                      AppRoutes.scheduleBuilder,
-                    );
+                    TabControllerProvider.tabIndex.value = 1;
                   },
                   child: _buildMyScheduleCard(localizer),
                 ),
                 const SizedBox(height: 30),
                 GestureDetector(
                   onTap: () {
-                    Navigator.pushReplacementNamed(
-                      context,
-                      AppRoutes.collabBoard,
-                    );
+                    TabControllerProvider.tabIndex.value = 2;
                   },
                   child: _buildCollaborationCard(localizer),
                 ),
@@ -326,46 +317,78 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildCollaborationCard(AppLocalizations localizer) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: FirestoreService().getUserJoinedCollaborations(uid),
+      builder: (context, snapshot) {
+        final collabs = snapshot.data ?? [];
+
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const CircleAvatar(
-                radius: 24,
-                backgroundColor: Color(0xFFFF6E5B),
-                child: Icon(Icons.diversity_3_rounded, color: Colors.white),
+              Row(
+                children: [
+                  const CircleAvatar(
+                    radius: 24,
+                    backgroundColor: Color(0xFFFF6E5B),
+                    child: Icon(Icons.diversity_3_rounded, color: Colors.white),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      localizer.translate("collab_highlights"),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  localizer.translate("collab_highlights"),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
+              const SizedBox(height: 16),
+              if (collabs.isEmpty)
+                const Text("You're not part of any collaborations yet.")
+              else
+                ...collabs.map(
+                      (collab) => ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      collab['title'] ?? 'Untitled',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: Text(
+                      collab['description'] ?? '',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                        onTap: () {
+                          // final channelId = collab['streamChannelId'];
+                          // if (channelId != null && channelId.isNotEmpty) {
+                          //   Navigator.pushNamed(
+                          //     context,
+                          //     AppRoutes.chatScreen,
+                          //     arguments: {
+                          //       'streamClient': widget.streamClient,
+                          //       'collabId': collab['collabId'] ?? '',
+                          //       'collabName': collab['title'] ?? 'Chat',
+                          //     },
+                          //   );
+                          // } else {
+                          //   // fallback to open collab board
+                            TabControllerProvider.tabIndex.value = 2;
+                          // }
+                        },
                   ),
                 ),
-              ),
             ],
           ),
-          const SizedBox(height: 16),
-          ..._collabData.map(
-            (item) => ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(
-                item,
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
