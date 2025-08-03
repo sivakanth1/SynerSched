@@ -65,7 +65,7 @@ class SettingsScreen extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 RadioListTile<String>(
-                                  title: const Text("English"),
+                                  title: Text(localizer.translate('english')),
                                   value: 'en',
                                   groupValue: selectedLang,
                                   onChanged: (value) {
@@ -73,7 +73,7 @@ class SettingsScreen extends StatelessWidget {
                                   },
                                 ),
                                 RadioListTile<String>(
-                                  title: const Text("Español"),
+                                  title: Text(localizer.translate('spanish')),
                                   value: 'es',
                                   groupValue: selectedLang,
                                   onChanged: (value) {
@@ -88,7 +88,7 @@ class SettingsScreen extends StatelessWidget {
                           TextButton(
                             onPressed: () =>
                                 Navigator.pop(context), // Close dialog
-                            child: const Text("Cancel"),
+                            child: Text(localizer.translate('cancel')),
                           ),
                           ElevatedButton(
                             onPressed: () {
@@ -97,7 +97,7 @@ class SettingsScreen extends StatelessWidget {
                               )?.setLocale(Locale(selectedLang));
                               Navigator.pop(context);
                             },
-                            child: const Text("Apply"),
+                            child: Text(localizer.translate('apply')),
                           ),
                         ],
                       );
@@ -131,7 +131,7 @@ class SettingsScreen extends StatelessWidget {
 
                   // Show snack for visual confirmation (optional)
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("You have been logged out")),
+                    SnackBar(content: Text(localizer.translate('logged_out'))),
                   );
 
                   await NotificationService().cancelAllNotifications();

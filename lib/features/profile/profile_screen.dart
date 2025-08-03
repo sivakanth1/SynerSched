@@ -3,11 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:syner_sched/routes/app_routes.dart';
 import 'package:syner_sched/shared/custom_button.dart';
-import 'package:syner_sched/shared/custom_nav_bar.dart';
-
 import '../../firebase/auth_service.dart';
+import '../../localization/app_localizations.dart';
 import '../../shared/notification_service.dart';
-import '../../shared/stream_helper.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -28,6 +26,7 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localizer = AppLocalizations.of(context)!;
     return Container(
       decoration: const BoxDecoration(
         image: DecorationImage(
@@ -50,9 +49,9 @@ class ProfileScreen extends StatelessWidget {
             ),
           ],
           centerTitle: true,
-          title: const Text(
-            "Profile",
-            style: TextStyle(
+          title: Text(
+            localizer.translate("my_profile"),
+            style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
               color: Color(0xFF2D4F48),
@@ -68,15 +67,15 @@ class ProfileScreen extends StatelessWidget {
               }
 
               if (!snapshot.hasData || snapshot.data == null) {
-                return const Center(child: Text("No profile data found."));
+                return Center(child: Text(localizer.translate("no_profile_data")));
               }
 
               final data = snapshot.data!;
-              final name = data['name'] ?? "No name";
-              final department = data['department'] ?? "Unknown Department";
-              final year = data['year'] ?? "Unknown Year";
+              final name = data['name'] ?? localizer.translate("no_name");
+              final department = data['department'] ?? localizer.translate("unknown_department");
+              final year = data['year'] ?? localizer.translate("unknown_year");
               final skills = List<String>.from(data['skills'] ?? []);
-              final interests = data['interests'] ?? "No interests";
+              final interests = data['interests'] ?? localizer.translate("no_interests");
 
               return SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -108,11 +107,11 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
 
-                    const Align(
+                    Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        "Skills",
-                        style: TextStyle(
+                        localizer.translate("skills"),
+                        style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 16,
                         ),
@@ -126,11 +125,11 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
 
-                    const Align(
+                    Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        "Interests",
-                        style: TextStyle(
+                        localizer.translate("interests"),
+                        style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 16,
                         ),
@@ -139,14 +138,14 @@ class ProfileScreen extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(
                       "$interests",
-                      style: TextStyle(fontSize: 14, color: Colors.black87),
+                      style: const TextStyle(fontSize: 14, color: Colors.black87),
                     ),
                     const SizedBox(height: 40),
 
                     buildCustomButton(context, () async {
                       await AuthService.logout();
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("You have been logged out")),
+                        SnackBar(content: Text(localizer.translate("logged_out"))),
                       );
 
                       await NotificationService().cancelAllNotifications();
@@ -156,7 +155,7 @@ class ProfileScreen extends StatelessWidget {
                         AppRoutes.onboarding,
                             (route) => false,
                       );
-                    }, const Icon(Icons.logout), const Text("Logout")),
+                    }, const Icon(Icons.logout), Text(localizer.translate("logout"))),
                     const SizedBox(height: 24),
                   ],
                 ),

@@ -86,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () => _showAddTaskDialog(context),
           icon: const Icon(Icons.add),
-          label: const Text("Add Task"),
+          label: Text(localizer.translate("add_task")),
           backgroundColor: const Color(0xFF5579f1),
           foregroundColor: Colors.white,
         ),
@@ -193,7 +193,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             fontWeight: FontWeight.w600,
                           ),
                         ),
-                        const Text("Welcome"),
+                        Text(localizer.translate("welcome")),
                       ],
                     ),
                   ),
@@ -206,10 +206,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       color: const Color(0xFF2D4F48),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Text(
-                      "Open",
-                      style: TextStyle(color: Colors.white),
-                    ),
+                    child:Text(localizer.translate("open"), style: TextStyle(color: Colors.white)),
                   ),
                 ],
               ),
@@ -290,10 +287,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: const Color(0xFF2D4F48),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text(
-                  "Build My Schedule",
-                  style: TextStyle(color: Colors.white),
-                ),
+                child:Text(localizer.translate("build_my_schedule"), style: TextStyle(color: Colors.white)),
               ),
             ],
           ),
@@ -352,7 +346,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 16),
               if (collabs.isEmpty)
-                const Text("You're not part of any collaborations yet.")
+                Text(localizer.translate("no_matching_collabs"))
               else
                 ...collabs.map(
                       (collab) => ListTile(
@@ -393,6 +387,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showAddTaskDialog(BuildContext context) {
+    final localizer = AppLocalizations.of(context)!;
     final titleController = TextEditingController();
     DateTime? selectedDate;
     TimeOfDay? selectedTime;
@@ -403,15 +398,15 @@ class _HomeScreenState extends State<HomeScreen> {
         return StatefulBuilder(
           builder: (context, setModalState) {
             return AlertDialog(
-              title: const Text("Add New Task"),
+              title: Text(localizer.translate("add_task")),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
                     controller: titleController,
                     keyboardType: TextInputType.name,
-                    decoration: const InputDecoration(
-                      labelText: "Task Title",
+                    decoration: InputDecoration(
+                      labelText: localizer.translate("task_title"),
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -421,7 +416,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     title: Text(
                       selectedDate != null
                           ? DateFormat('EEE, MMM d').format(selectedDate!)
-                          : "Pick a date",
+                          : localizer.translate("pick_a_date"),
                     ),
                     onTap: () async {
                       final picked = await showDatePicker(
@@ -440,7 +435,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     title: Text(
                       selectedTime != null
                           ? selectedTime!.format(context)
-                          : "Pick a time",
+                          : localizer.translate("pick_a_time"),
                     ),
                     onTap: () async {
                       final picked = await showTimePicker(
@@ -457,7 +452,7 @@ class _HomeScreenState extends State<HomeScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text("Cancel"),
+                    child: Text(localizer.translate("cancel")),
                 ),
                 ElevatedButton(
                   onPressed: () async {
@@ -485,7 +480,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             deadline.millisecondsSinceEpoch ~/
                             1000, // unique id
                         title: "Upcoming Task",
-                        body: "${titleController.text} is due in 1 hour",
+                        body: localizer.translate("task_due_1h").replaceFirst("{0}", titleController.text),
                         scheduledTime: deadline.subtract(
                           const Duration(hours: 1),
                         ),
@@ -494,7 +489,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       await notifService.scheduleNotification(
                         id: deadline.millisecondsSinceEpoch ~/ 1000 + 1,
                         title: "Upcoming Task",
-                        body: "${titleController.text} is due in 30 minutes",
+                        body: localizer.translate("task_due_30m").replaceFirst("{0}", titleController.text),
                         scheduledTime: deadline.subtract(
                           const Duration(minutes: 30),
                         ),
@@ -503,7 +498,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       await notifService.scheduleNotification(
                         id: deadline.millisecondsSinceEpoch ~/ 1000 + 2,
                         title: "Upcoming Task",
-                        body: "${titleController.text} is due in 15 minutes",
+                        body: localizer.translate("task_due_15m").replaceFirst("{0}", titleController.text),
                         scheduledTime: deadline.subtract(
                           const Duration(minutes: 15),
                         ),
@@ -512,7 +507,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Navigator.pop(context);
                     }
                   },
-                  child: const Text("Add"),
+                  child: Text(localizer.translate("add")),
                 ),
               ],
             );

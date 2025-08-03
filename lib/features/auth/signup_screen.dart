@@ -102,9 +102,9 @@ class _SignupScreenState extends State<SignupScreen> {
                 children: [
                   Image.asset('assets/images/app_icon_teal.png', height: 160),
                   const SizedBox(height: 10),
-                  const Text(
-                    "SynerSched",
-                    style: TextStyle(
+                  Text(
+                    localizer.translate("app_name"),
+                    style: const TextStyle(
                       fontSize: 32,
                       color: Color(0xFF2D4F48),
                       fontWeight: FontWeight.bold,

@@ -28,6 +28,14 @@ class AppLocalizations {
   }
 
   String translate(String key) => _localizedStrings[key] ?? '** $key **';
+
+  String translateWithArgs(String key, List<String> args) {
+    String template = _localizedStrings[key] ?? '** $key **';
+    for (int i = 0; i < args.length; i++) {
+      template = template.replaceAll('{$i}', args[i]);
+    }
+    return template;
+  }
 }
 
 class _AppLocalizationsDelegate

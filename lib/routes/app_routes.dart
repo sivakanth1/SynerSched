@@ -3,13 +3,11 @@ import 'package:stream_chat/stream_chat.dart' as stream;
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 import 'package:syner_sched/features/collab_match/collab_board_screen.dart';
 import 'package:syner_sched/features/profile/profile_screen.dart';
-import 'package:syner_sched/features/schedule/course_selection_screen.dart';
 import 'package:syner_sched/features/schedule/schedule_builder_screen.dart';
 import '../features/auth/login_screen.dart';
 import '../features/auth/signup_screen.dart';
 import '../features/collab_match/chat_detail_screen.dart';
 import '../features/collab_match/new_collab_screen.dart';
-import '../features/home/home_screen.dart';
 import '../features/notifications/notifications_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/profile/edit_profile_screen.dart';
@@ -33,7 +31,6 @@ class AppRoutes {
   static const String gpaEstimator = '/gpa-estimator';
   static const String notifications = '/notifications';
   static const String settings = '/settings';
-  static const String courseSelection = '/course-selection';
 
   static Map<String, WidgetBuilder> routesWithStreamClient(
       stream.StreamChatClient client) {
@@ -66,7 +63,6 @@ class AppRoutes {
       gpaEstimator: (_) => const GPAEstimatorScreen(),
       notifications: (_) => const NotificationsScreen(),
       settings: (_) => const SettingsScreen(),
-      courseSelection: (_) => const CourseSelectionScreen(),
     };
   }
 }

@@ -98,7 +98,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               // Notification Cards
               Expanded(
                 child: notifications.isEmpty
-                    ? const Center(child: Text("No notifications yet."))
+                    ? Center(child: Text(localizer.translate("no_notifications")))
                     : ListView.builder(
                         itemCount: notifications.length,
                         itemBuilder: (context, index) {

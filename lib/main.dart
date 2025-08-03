@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -13,7 +12,6 @@ import 'firebase_options.dart';
 import 'localization/inherited_locale.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:stream_chat_flutter/stream_chat_flutter.dart' as stream;
-import 'package:cloud_functions/cloud_functions.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -61,7 +59,7 @@ class _MyAppState extends State<MyApp> {
       title: 'SynerSched',
       theme: lightTheme,
       darkTheme: darkTheme,
-      locale: _locale,
+      locale: InheritedLocale.of(context)?.locale ?? _locale,
       debugShowCheckedModeBanner: false,
       supportedLocales: const [Locale('en'), Locale('es')],
       localizationsDelegates: const [
@@ -72,16 +70,20 @@ class _MyAppState extends State<MyApp> {
       ],
       restorationScopeId: 'root',
       builder: (context, child) {
-        return InheritedLocale(
-          locale: _locale,
-          setLocale: _setLocale,
-          child: stream.StreamChat(
-            client: _streamClient,
-            child: stream.StreamChatTheme(
-              data: stream.StreamChatThemeData(),
-              child: child!,
-            ),
-          ),
+        return Builder(
+          builder: (innerContext) {
+            return InheritedLocale(
+              locale: _locale,
+              setLocale: _setLocale,
+              child: stream.StreamChat(
+                client: _streamClient,
+                child: stream.StreamChatTheme(
+                  data: stream.StreamChatThemeData(),
+                  child: child!,
+                ),
+              ),
+            );
+          },
         );
       },
       home: SplashScreen(setLocale: _setLocale, streamClient: _streamClient),

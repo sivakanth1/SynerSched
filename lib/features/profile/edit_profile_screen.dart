@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart' as stream;
+import '../../localization/app_localizations.dart';
 import '../../routes/app_routes.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -19,14 +20,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _interestsController = TextEditingController();
 
   String? _selectedDepartment = "Computer Science";
-  List<String> _departments = [
-    "Computer Science",
-    "Information Systems",
-    "Engineering",
-    "Data Science",
+  final List<String> _departments = [
+    "Accounting", "Anthropology", "Architecture", "Biological Sciences", "Business",
+    "Chemical Engineering", "Civil Engineering", "Computer Science", "Criminal Justice",
+    "Data Science", "Design", "Economics", "Education", "Electrical Engineering", "Engineering",
+    "English", "Environmental Science", "Finance", "History", "Information Systems", "Law",
+    "Linguistics", "Management", "Marketing", "Mathematics", "Mechanical Engineering",
+    "Media Studies", "Medicine", "Nursing", "Philosophy", "Physics", "Political Science",
+    "Psychology", "Public Administration", "Public Health", "Social Work", "Sociology",
+    "Software Engineering", "Statistics", "Theater", "Urban Planning", "Zoology",
   ];
 
-  List<String> _skills = ["Flutter", "Machine Learning"];
+  final List<String> _skills = [];
+
+  final List<String> _allSkillOptions = [
+    "AI", "Automation", "Augmented Reality", "Big Data", "Blockchain", "Business Intelligence",
+    "Cloud", "Cybersecurity", "Data Analysis", "Data Engineering", "Data Mining", "Data Science",
+    "Deep Learning", "DevOps", "Digital Marketing", "Edge Computing", "Ethical Hacking", "Flutter",
+    "Game Development", "Graphic Design", "IoT", "Java", "JavaScript", "Kotlin", "Machine Learning",
+    "Mobile App", "Natural Language Processing", "Networking", "Python", "React", "Robotics",
+    "SQL", "Software Engineering", "Sustainability", "Teamwork", "UI/UX", "Virtual Reality",
+    "Web Dev", "Web3"
+  ];
 
   void _addSkill(String skill) {
     if (skill.isNotEmpty && !_skills.contains(skill)) {
@@ -51,9 +66,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        title: const Text(
-          "Edit Profile",
-          style: TextStyle(
+        title: Text(
+          AppLocalizations.of(context)!.translate("edit_profile"),
+          style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
             color: Color(0xFF2D4F48),
@@ -64,33 +79,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
         child: Column(
           children: [
-            _buildLabel("Name"),
-            _buildTextField(_nameController, hint: "Enter your name"),
+            _buildLabel(AppLocalizations.of(context)!.translate("name")),
+            _buildTextField(_nameController, hint: AppLocalizations.of(context)!.translate("enter_name")),
             const SizedBox(height: 16),
 
-            _buildLabel("Department"),
+            _buildLabel(AppLocalizations.of(context)!.translate("department")),
             _buildDropdown(),
             const SizedBox(height: 16),
 
-            _buildLabel("Year"),
-            _buildTextField(_yearController, hint: "Enter year"),
+            _buildLabel(AppLocalizations.of(context)!.translate("year")),
+            _buildTextField(_yearController, hint: AppLocalizations.of(context)!.translate("enter_year")),
             const SizedBox(height: 16),
 
-            _buildLabel("Skills"),
-            _buildSkillChips(),
-            const SizedBox(height: 8),
-            _buildTextField(
-              _skillController,
-              hint: "Add a skill",
-              suffixIcon: IconButton(
-                icon: const Icon(Icons.add),
-                onPressed: () => _addSkill(_skillController.text),
-              ),
-            ),
+            _buildLabel(AppLocalizations.of(context)!.translate("skills")),
+            _buildSkillAutocomplete(),
             const SizedBox(height: 16),
 
-            _buildLabel("Interests"),
-            _buildTextField(_interestsController, hint: "Enter your Interests"),
+            _buildLabel(AppLocalizations.of(context)!.translate("interests")),
+            _buildTextField(_interestsController, hint: AppLocalizations.of(context)!.translate("enter_interests")),
             const SizedBox(height: 32),
 
             // Save Button
@@ -126,7 +132,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     }
 
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Profile updated')),
+                      SnackBar(content: Text(AppLocalizations.of(context)!.translate("profile_updated"))),
                     );
 
                     if (widget.fromSignup) {
@@ -136,12 +142,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     }
                   } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error saving profile: $e')),
+                      SnackBar(content: Text('${AppLocalizations.of(context)!.translate("error_saving_profile")}: $e')),
                     );
                   }
                 },
                 icon: const Icon(Icons.check),
-                label: const Text("Save"),
+                label: Text(AppLocalizations.of(context)!.translate("save_changes")),
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white,
                   backgroundColor: const Color(0xFF2D4F48),
@@ -218,19 +224,58 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Widget _buildSkillChips() {
-    return Wrap(
-      spacing: 8,
-      children: _skills
-          .map(
-            (skill) => Chip(
-              label: Text(skill),
-              backgroundColor: const Color(0xFFE3F2FD),
-              deleteIcon: const Icon(Icons.close),
-              onDeleted: () => _removeSkill(skill),
-            ),
-          )
-          .toList(),
+  Widget _buildSkillAutocomplete() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 8,
+          children: _skills
+              .map(
+                (skill) => Chip(
+                  label: Text(skill),
+                  backgroundColor: const Color(0xFFE3F2FD),
+                  deleteIcon: const Icon(Icons.close),
+                  onDeleted: () => _removeSkill(skill),
+                ),
+              )
+              .toList(),
+        ),
+        const SizedBox(height: 8),
+        Autocomplete<String>(
+          optionsBuilder: (TextEditingValue textEditingValue) {
+            final input = textEditingValue.text.toLowerCase();
+            return _allSkillOptions
+                .where((skill) => skill.toLowerCase().contains(input) && !_skills.contains(skill))
+                .toList();
+          },
+          onSelected: (String selection) {
+            _addSkill(selection);
+          },
+          fieldViewBuilder: (context, controller, focusNode, onEditingComplete) {
+            controller.clear();
+            return TextField(
+              controller: controller,
+              focusNode: focusNode,
+              onEditingComplete: onEditingComplete,
+              decoration: InputDecoration(
+                hintText: AppLocalizations.of(context)!.translate("add_skill"),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () {
+                    _addSkill(controller.text.trim());
+                    _skillController.clear();
+                  },
+                ),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                filled: true,
+                fillColor: Colors.white,
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 }

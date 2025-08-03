@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
+import 'package:syner_sched/localization/app_localizations.dart';
 
 class ChatDetailScreen extends StatefulWidget {
   final String collabId;
@@ -65,15 +66,15 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                   if (mounted) {
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("You left the collaboration")),
+                      SnackBar(content: Text(AppLocalizations.of(context)!.translate("left_collab_message"))),
                     );
                   }
                 }
               },
               itemBuilder: (context) =>  [
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: 'leave',
-                  child: Text("Leave Collaboration"),
+                  child: Text(AppLocalizations.of(context)!.translate("leave_collaboration")),
                 ),
               ],
             ),

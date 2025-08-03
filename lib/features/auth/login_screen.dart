@@ -22,6 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _login() async {
     setState(() => _isLoading = true);
+    final localizer = AppLocalizations.of(context)!;
     try {
       await _auth.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
@@ -34,16 +35,16 @@ class _LoginScreenState extends State<LoginScreen> {
       String message;
       switch (e.code) {
         case 'user-not-found':
-          message = "No user found for that email.";
+          message = localizer.translate("no_user_for_email");
           break;
         case 'wrong-password':
-          message = "Incorrect password.";
+          message = localizer.translate("incorrect_password");
           break;
         case 'invalid-email':
-          message = "Invalid email format.";
+          message = localizer.translate("invalid_email");
           break;
         default:
-          message = "Login failed. Please try again.";
+          message = localizer.translate("login_failed");
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -156,7 +157,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        localizer.translate('no_account'),
+                        localizer.translate('dont_have_account'),
                         style: const TextStyle(color: Colors.black87),
                       ),
                       TextButton(

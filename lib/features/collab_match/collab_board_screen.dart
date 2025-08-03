@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import '../../localization/app_localizations.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 import '../../routes/app_routes.dart';
 import '../../shared/stream_helper.dart';
@@ -16,7 +17,14 @@ class CollabBoardScreen extends StatefulWidget {
 class _CollabBoardScreenState extends State<CollabBoardScreen> {
   final currentUserId = FirebaseAuth.instance.currentUser?.uid;
   final TextEditingController _searchController = TextEditingController();
-  String _sortOption = 'Recent';
+  late String _sortOption;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final localizer = AppLocalizations.of(context)!;
+    _sortOption = localizer.translate("recent");
+  }
 
   Stream<QuerySnapshot> getCollabStream() {
     return FirebaseFirestore.instance
@@ -29,6 +37,8 @@ class _CollabBoardScreenState extends State<CollabBoardScreen> {
     final currentUserId = FirebaseAuth.instance.currentUser?.uid;
     if (currentUserId == null) return;
 
+    final localizer = AppLocalizations.of(context)!;
+
     final alreadyMember = members.contains(currentUserId);
 
     final shouldJoin = alreadyMember
@@ -36,11 +46,11 @@ class _CollabBoardScreenState extends State<CollabBoardScreen> {
         : await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text("Join $collabName?"),
-        content: const Text("Do you want to join this collaboration and enter the chat?"),
+        title: Text('${localizer.translate("join")} $collabName?'),
+        content: Text(localizer.translate("join_collaboration_prompt")),
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text("Cancel")),
-          ElevatedButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text("Join")),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: Text(localizer.translate("cancel"))),
+          ElevatedButton(onPressed: () => Navigator.of(ctx).pop(true), child: Text(localizer.translate("join"))),
         ],
       ),
     ) ??
@@ -77,13 +87,15 @@ class _CollabBoardScreenState extends State<CollabBoardScreen> {
         },
       );
     } catch (e) {
+      final localizer = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error joining collaboration: $e')),
+        SnackBar(content: Text('${localizer.translate("error_joining_collab")}: $e')),
       );
     }
   }
 
   List<DocumentSnapshot> _applyFilters(List<DocumentSnapshot> docs) {
+    final localizer = AppLocalizations.of(context)!;
     String query = _searchController.text.toLowerCase();
 
     return docs.where((doc) {
@@ -100,9 +112,9 @@ class _CollabBoardScreenState extends State<CollabBoardScreen> {
       if (!matchesQuery) return false;
 
       // Optional sort filter — you can expand this with your data model
-      if (_sortOption == 'Computer Science') {
+      if (_sortOption == localizer.translate("computer_science")) {
         return data['department'] == 'Computer Science';
-      } else if (_sortOption == 'Machine Learning') {
+      } else if (_sortOption == localizer.translate("machine_learning")) {
         return (data['skills'] ?? []).contains('Machine Learning');
       }
 
@@ -112,6 +124,7 @@ class _CollabBoardScreenState extends State<CollabBoardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final localizer = AppLocalizations.of(context)!;
     return Container(
       decoration: const BoxDecoration(
         image: DecorationImage(
@@ -126,9 +139,9 @@ class _CollabBoardScreenState extends State<CollabBoardScreen> {
           centerTitle: true,
           backgroundColor: Colors.transparent,
           elevation: 0,
-          title: const Text(
-            "Collaboration Board",
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF2D4F48)),
+          title: Text(
+            localizer.translate("collaboration_board"),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF2D4F48)),
           ),
         ),
         body: SafeArea(
@@ -141,7 +154,7 @@ class _CollabBoardScreenState extends State<CollabBoardScreen> {
                   controller: _searchController,
                   onChanged: (_) => setState(() {}),
                   decoration: InputDecoration(
-                    hintText: "Search by title, description or tag",
+                    hintText: localizer.translate("search_placeholder"),
                     prefixIcon: const Icon(Icons.search),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     filled: true,
@@ -153,15 +166,15 @@ class _CollabBoardScreenState extends State<CollabBoardScreen> {
                 // 📦 Sort dropdown
                 Row(
                   children: [
-                    const Text("Sort by: ", style: TextStyle(color: Colors.black87)),
+                    Text(localizer.translate("sort_by"), style: const TextStyle(color: Colors.black87)),
                     const SizedBox(width: 8),
                     DropdownButton<String>(
                       value: _sortOption,
                       items: [
-                        'Recent',
-                        'Computer Science',
-                        'Machine Learning',
-                      ].map((opt) => DropdownMenuItem(value: opt, child: Text(opt))).toList(),
+                        localizer.translate("recent"),
+                        localizer.translate("computer_science"),
+                        localizer.translate("machine_learning"),
+                      ].map((String opt) => DropdownMenuItem<String>(value: opt, child: Text(opt))).toList(),
                       onChanged: (value) {
                         setState(() => _sortOption = value!);
                       },
@@ -177,7 +190,7 @@ class _CollabBoardScreenState extends State<CollabBoardScreen> {
                       if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
 
                       final filtered = _applyFilters(snapshot.data!.docs);
-                      if (filtered.isEmpty) return const Center(child: Text("No matching collaborations."));
+                      if (filtered.isEmpty) return Center(child: Text(localizer.translate("no_matching_collabs")));
 
                       return ListView.builder(
                         itemCount: filtered.length,
@@ -205,7 +218,7 @@ class _CollabBoardScreenState extends State<CollabBoardScreen> {
                 ElevatedButton.icon(
                   onPressed: () => Navigator.pushNamed(context, AppRoutes.newCollab),
                   icon: const Icon(Icons.add, color: Colors.white),
-                  label: const Text("New Collab", style: TextStyle(color: Colors.white)),
+                  label: Text(localizer.translate("new_collab"), style: const TextStyle(color: Colors.white)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF2D4F48),
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -238,6 +251,7 @@ class _CollabCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localizer = AppLocalizations.of(context)!;
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       color: isJoined ? const Color(0xFFE5F7EA) : Colors.white,
@@ -272,7 +286,7 @@ class _CollabCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
-            isJoined ? "Joined" : "Join",
+            isJoined ? localizer.translate("joined") : localizer.translate("join"),
             style: const TextStyle(color: Colors.white),
           ),
         ),

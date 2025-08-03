@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
+import '../../localization/app_localizations.dart';
 
 class NewCollabScreen extends StatefulWidget {
   final StreamChatClient streamClient;
@@ -50,9 +51,9 @@ class _NewCollabScreenState extends State<NewCollabScreen> {
           centerTitle: true,
           backgroundColor: Colors.transparent,
           elevation: 0,
-          title: const Text(
-            "Start New Collaboration",
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF2D4F48)),
+          title: Text(
+            AppLocalizations.of(context)!.translate("start_new_collab"),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF2D4F48)),
           ),
         ),
         body: SafeArea(
@@ -64,7 +65,7 @@ class _NewCollabScreenState extends State<NewCollabScreen> {
                   TextField(
                     controller: _titleController,
                     decoration: InputDecoration(
-                      hintText: "Collaboration Title",
+                      hintText: AppLocalizations.of(context)!.translate("title"),
                       filled: true,
                       fillColor: Colors.white,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -76,7 +77,7 @@ class _NewCollabScreenState extends State<NewCollabScreen> {
                     controller: _descController,
                     maxLines: 3,
                     decoration: InputDecoration(
-                      hintText: "Project Description",
+                      hintText: AppLocalizations.of(context)!.translate("description"),
                       filled: true,
                       fillColor: Colors.white,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -86,13 +87,13 @@ class _NewCollabScreenState extends State<NewCollabScreen> {
                   const SizedBox(height: 16),
 
                   // Department Dropdown
-                  _buildLabel("Department"),
+                  _buildLabel(AppLocalizations.of(context)!.translate("department")),
                   const SizedBox(height: 4),
                   _buildDepartmentAutocomplete(),
                   const SizedBox(height: 16),
 
                   // Tags/Skills
-                  _buildLabel("Tags or Skills (optional)"),
+                  _buildLabel(AppLocalizations.of(context)!.translate("skills")),
                   const SizedBox(height: 4),
                   Wrap(
                     spacing: 8,
@@ -115,7 +116,7 @@ class _NewCollabScreenState extends State<NewCollabScreen> {
                     child: ElevatedButton.icon(
                       onPressed: _createCollab,
                       icon: const Icon(Icons.check),
-                      label: const Text("Create"),
+                      label: Text(AppLocalizations.of(context)!.translate("create")),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF2D4F48),
                         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -160,7 +161,7 @@ class _NewCollabScreenState extends State<NewCollabScreen> {
           focusNode: focusNode,
           onEditingComplete: onEditingComplete,
           decoration: InputDecoration(
-            hintText: "Add a tag (e.g., Flutter)",
+            hintText: AppLocalizations.of(context)!.translate("search_placeholder"),
             suffixIcon: IconButton(
               icon: const Icon(Icons.add),
               onPressed: () => _addTag(controller.text.trim()),
@@ -212,7 +213,7 @@ class _NewCollabScreenState extends State<NewCollabScreen> {
           focusNode: focusNode,
           onEditingComplete: onEditingComplete,
           decoration: InputDecoration(
-            hintText: "Select Department",
+            hintText: AppLocalizations.of(context)!.translate("department"),
             filled: true,
             fillColor: Colors.white,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -227,7 +228,7 @@ class _NewCollabScreenState extends State<NewCollabScreen> {
     final title = _titleController.text.trim();
     final desc = _descController.text.trim();
     if (title.isEmpty || desc.isEmpty || _currentUser == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please fill in all fields.")));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.translate("join_collaboration_prompt"))));
       return;
     }
 
@@ -258,10 +259,10 @@ class _NewCollabScreenState extends State<NewCollabScreen> {
       // Step 3: Update Firestore with Stream channel ID
       await docRef.update({'streamChannelId': channel.id});
 
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Collaboration Created!")));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.translate("collab_created"))));
       Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.translate("error_joining_collab"))));
     }
   }
 }

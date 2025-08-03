@@ -48,12 +48,12 @@ class _ScheduleBuilderScreenState extends State<ScheduleBuilderScreen> {
       await showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: const Text("New Semester Detected"),
-          content: Text("It's now $currentSemester. Would you like to build a new schedule?"),
+          title: Text(AppLocalizations.of(context)!.translate("new_semester_detected")),
+          content: Text(AppLocalizations.of(context)!.translateWithArgs("new_semester_content", [currentSemester])),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text("Later"),
+              child: Text(AppLocalizations.of(context)!.translate("later")),
             ),
             ElevatedButton(
               onPressed: () {
@@ -61,7 +61,7 @@ class _ScheduleBuilderScreenState extends State<ScheduleBuilderScreen> {
                 Navigator.pop(ctx);
                 Navigator.pushReplacementNamed(context, AppRoutes.scheduleBuilder);
               },
-              child: const Text("Yes, Build"),
+              child: Text(AppLocalizations.of(context)!.translate("yes_build")),
             ),
           ],
         ),
