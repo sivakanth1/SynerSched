@@ -141,5 +141,14 @@
   "yes_build": "Sí, crear",
   "english": "Inglés",
   "spanish": "Español",
-  "apply": "Aplicar"
+  "apply": "Aplicar",
+  "morning": "Mañana",
+  "afternoon": "Tarde",
+  "evening": "Noche",
+  "light": "Ligero",
+  "medium": "Medio",
+  "intense": "Intenso",
+  "add_break": "Agregar descanso",
+  "no_schedule_found": "No se encontró ningún horario",
+  "no_upcoming_deadlines": "No hay fechas límite próximas"
 }

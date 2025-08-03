@@ -8,11 +8,15 @@ class OnboardingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Obtain the localization object to translate strings based on the current locale
     final localizer = AppLocalizations.of(context)!;
+    // Access the locale controller to allow changing the app's language
     final localeController = InheritedLocale.of(context);
+    // Determine if the current language is English for toggle logic
     final isEnglish = localizer.locale.languageCode == 'en';
 
     return Scaffold(
+      // Main container with a background image covering the entire screen
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
@@ -20,19 +24,23 @@ class OnboardingScreen extends StatelessWidget {
             fit: BoxFit.cover,
           ),
         ),
+        // SafeArea ensures content is not obscured by system UI elements
         child: SafeArea(
+          // Center widget centers its child vertically and horizontally
           child: Center(
             child: Padding(
+              // Horizontal padding to prevent content from touching screen edges
               padding: const EdgeInsets.symmetric(horizontal: 32),
               child: Column(
+                // Center children vertically and horizontally within the column
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // App Logo
+                  // Display the app logo with a fixed height
                   Image.asset('assets/images/app_icon_teal.png', height: 250),
                   const SizedBox(height: 24),
 
-                  // Welcome Text
+                  // Display a welcome text, localized to the current language
                   Text(
                     localizer.translate("welcome_to"),
                     style: const TextStyle(
@@ -42,6 +50,8 @@ class OnboardingScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
+
+                  // Display the app name prominently with styling
                   Text(
                     "SynerSched",
                     style: const TextStyle(
@@ -53,11 +63,12 @@ class OnboardingScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 40),
 
-                  // Login Button
+                  // Button to navigate to the login screen
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
+                        // Navigate to the login route when pressed
                         Navigator.pushNamed(context, AppRoutes.login);
                       },
                       style: ElevatedButton.styleFrom(
@@ -67,6 +78,7 @@ class OnboardingScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
+                      // Localized text for the button label
                       child: Text(
                         localizer.translate("login"),
                         style: const TextStyle(
@@ -79,11 +91,12 @@ class OnboardingScreen extends StatelessWidget {
 
                   const SizedBox(height: 14),
 
-                  // Sign Up Button
+                  // Button to navigate to the sign-up screen
                   SizedBox(
                     width: double.infinity,
                     child: OutlinedButton(
                       onPressed: () {
+                        // Navigate to the sign-up route when pressed
                         Navigator.pushNamed(context, AppRoutes.signup);
                       },
                       style: OutlinedButton.styleFrom(
@@ -96,6 +109,7 @@ class OnboardingScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
+                      // Localized text for the button label
                       child: Text(
                         localizer.translate("signup"),
                         style: const TextStyle(
@@ -108,15 +122,17 @@ class OnboardingScreen extends StatelessWidget {
 
                   const SizedBox(height: 24),
 
-                  // Language Toggle
+                  // Text button to toggle the app's language between English and Spanish
                   TextButton(
                     onPressed: () {
-                      // Language toggle logic already implemented via InheritedLocale
+                      // Determine the new locale based on the current language
                       final newLocale = isEnglish
                           ? const Locale('es')
                           : const Locale('en');
+                      // Update the locale via the inherited locale controller
                       localeController?.setLocale(newLocale);
                     },
+                    // Display the language toggle label dynamically
                     child: Text(
                       localizer.locale.languageCode == 'en'
                           ? "Español >"

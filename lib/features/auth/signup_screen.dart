@@ -1,3 +1,8 @@
+// signup_screen.dart
+// This screen provides a user interface for new users to sign up for an account in the SynerSched app.
+// It handles user input for email and password, validates the input, and interacts with AuthService to register the user.
+// Upon successful signup, the user is navigated to the EditProfileScreen to complete their profile.
+
 import 'package:flutter/material.dart';
 import 'package:syner_sched/localization/app_localizations.dart';
 import 'package:syner_sched/routes/app_routes.dart';
@@ -5,6 +10,7 @@ import 'package:syner_sched/firebase/auth_service.dart';
 import '../../shared/build_input_field.dart';
 import '../profile/edit_profile_screen.dart';
 
+// SignupScreen is a stateful widget that displays the signup form to the user.
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
 
@@ -12,6 +18,7 @@ class SignupScreen extends StatefulWidget {
   State<SignupScreen> createState() => _SignupScreenState();
 }
 
+// State class for SignupScreen. Manages form input, validation, loading state, and error messages.
 class _SignupScreenState extends State<SignupScreen> {
   bool _hidePassword = true;
   bool _hideConfirmPassword = true;
@@ -22,6 +29,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
 
+  // Validates password complexity including length, uppercase, lowercase, digit, and special character
   bool _isPasswordValid(String password) {
     final lengthValid = password.length >= 8 && password.length <= 16;
     final hasUpper = password.contains(RegExp(r'[A-Z]'));
@@ -31,12 +39,14 @@ class _SignupScreenState extends State<SignupScreen> {
     return lengthValid && hasUpper && hasLower && hasDigit && hasSpecial;
   }
 
+  // Handles the signup process: validates input, interacts with AuthService, and manages UI state.
   void _handleSignup() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
     final confirm = _confirmPasswordController.text.trim();
     final localizer = AppLocalizations.of(context)!;
 
+    // Check if any required fields are empty
     if (email.isEmpty || password.isEmpty || confirm.isEmpty) {
       setState(() {
         _error = localizer.translate("fill_all_fields");
@@ -44,6 +54,7 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
+    // Check if password and confirm password fields match
     if (password != confirm) {
       setState(() {
         _error = localizer.translate("passwords_do_not_match");
@@ -51,6 +62,7 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
+    // Check if password meets the complexity requirements
     if (!_isPasswordValid(password)) {
       setState(() {
         _error = localizer.translate("password_policy_message");
@@ -58,15 +70,18 @@ class _SignupScreenState extends State<SignupScreen> {
       return;
     }
 
+    // Begin loading and clear previous errors
     setState(() {
       _isLoading = true;
       _error = null;
     });
 
+    // Attempt to sign up the user using AuthService
     final user = await AuthService.signUp(email, password);
 
     setState(() => _isLoading = false);
 
+    // If signup is successful, navigate to EditProfileScreen
     if (user != null) {
       Navigator.pushReplacement(
         context,
@@ -74,6 +89,7 @@ class _SignupScreenState extends State<SignupScreen> {
           builder: (_) => const EditProfileScreen(fromSignup: true),
         ),
       );
+    // If signup fails, display an error message
     } else {
       setState(() {
         _error = localizer.translate("signup_failed");
@@ -81,6 +97,7 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
+  // Builds the signup screen UI, including input fields, error messages, and buttons.
   @override
   Widget build(BuildContext context) {
     final localizer = AppLocalizations.of(context)!;
@@ -100,8 +117,10 @@ class _SignupScreenState extends State<SignupScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  // App icon
                   Image.asset('assets/images/app_icon_teal.png', height: 160),
                   const SizedBox(height: 10),
+                  // App name/title
                   Text(
                     localizer.translate("app_name"),
                     style: const TextStyle(
@@ -113,6 +132,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   const SizedBox(height: 30),
 
+                  // Email input field
                   buildInputField(
                     keyboardType: TextInputType.emailAddress,
                     controller: _emailController,
@@ -122,6 +142,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   const SizedBox(height: 16),
 
+                  // Password input field with visibility toggle
                   buildInputField(
                     keyboardType: TextInputType.visiblePassword,
                     controller: _passwordController,
@@ -134,6 +155,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   const SizedBox(height: 16),
 
+                  // Confirm password input field with visibility toggle
                   buildInputField(
                     keyboardType: TextInputType.visiblePassword,
                     controller: _confirmPasswordController,
@@ -146,6 +168,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   const SizedBox(height: 20),
 
+                  // Error message display (if any)
                   if (_error != null)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 10),
@@ -155,6 +178,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       ),
                     ),
 
+                  // Signup button or loading indicator
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -167,17 +191,19 @@ class _SignupScreenState extends State<SignupScreen> {
                         ),
                       ),
                       child: _isLoading
+                          // Show loading spinner when processing, otherwise show signup text
                           ? const CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      )
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            )
                           : Text(
-                        localizer.translate("signup"),
-                        style: const TextStyle(fontSize: 18, color: Colors.white),
-                      ),
+                              localizer.translate("signup"),
+                              style: const TextStyle(fontSize: 18, color: Colors.white),
+                            ),
                     ),
                   ),
                   const SizedBox(height: 16),
 
+                  // Link to login screen for existing users
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

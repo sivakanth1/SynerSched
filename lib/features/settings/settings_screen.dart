@@ -1,3 +1,6 @@
+// This file defines the SettingsScreen widget, which provides the user with options
+// to change the app language, view app theme options (coming soon), and log out.
+
 import 'package:flutter/material.dart';
 import 'package:syner_sched/localization/app_localizations.dart';
 import 'package:syner_sched/shared/custom_nav_bar.dart';
@@ -42,7 +45,7 @@ class SettingsScreen extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 90),
           child: Column(
             children: [
-              // Change Language Card
+              // Language change option card
               _buildSettingCard(
                 context,
                 icon: Icons.language,
@@ -54,6 +57,7 @@ class SettingsScreen extends StatelessWidget {
                   String currentLang = localizer.locale.languageCode;
                   String selectedLang = currentLang;
 
+                  // Show dialog for selecting language
                   showDialog(
                     context: context,
                     builder: (context) {
@@ -85,16 +89,17 @@ class SettingsScreen extends StatelessWidget {
                           },
                         ),
                         actions: [
+                          // Cancel button closes dialog
                           TextButton(
                             onPressed: () =>
-                                Navigator.pop(context), // Close dialog
+                                Navigator.pop(context),
                             child: Text(localizer.translate('cancel')),
                           ),
+                          // Apply new language selection
                           ElevatedButton(
                             onPressed: () {
-                              InheritedLocale.of(
-                                context,
-                              )?.setLocale(Locale(selectedLang));
+                              InheritedLocale.of(context)
+                                  ?.setLocale(Locale(selectedLang));
                               Navigator.pop(context);
                             },
                             child: Text(localizer.translate('apply')),
@@ -108,7 +113,7 @@ class SettingsScreen extends StatelessWidget {
 
               const SizedBox(height: 12),
 
-              // App Theme Card
+              // Placeholder card for app theme settings
               _buildSettingCard(
                 context,
                 icon: Icons.palette,
@@ -120,26 +125,29 @@ class SettingsScreen extends StatelessWidget {
 
               const SizedBox(height: 12),
 
-              // Logout Card
+              // Logout option card
               _buildSettingCard(
                 context,
                 icon: Icons.logout,
                 title: localizer.translate('logout'),
                 subtitle: "",
                 onTap: () async {
+                  // Clear user session
                   await AuthService.logout();
 
-                  // Show snack for visual confirmation (optional)
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(localizer.translate('logged_out'))),
-                  );
-
+                  // Cancel all local notifications
                   await NotificationService().cancelAllNotifications();
 
+                  // Navigate to onboarding screen and remove all previous routes
                   Navigator.pushNamedAndRemoveUntil(
                     context,
                     AppRoutes.onboarding,
-                        (route) => false,
+                    (route) => false,
+                  );
+
+                  // Show confirmation message
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(localizer.translate('logged_out'))),
                   );
                 },
               ),
@@ -150,6 +158,7 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  // Helper method to create a settings option card
   Widget _buildSettingCard(
     BuildContext context, {
     required IconData icon,

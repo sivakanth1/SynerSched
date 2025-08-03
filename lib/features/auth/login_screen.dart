@@ -5,6 +5,10 @@ import 'package:syner_sched/localization/inherited_locale.dart';
 import 'package:syner_sched/routes/app_routes.dart';
 import 'package:syner_sched/shared/build_input_field.dart';
 
+/// This screen provides the login interface for users.
+/// It includes email and password input fields, password visibility toggle,
+/// localization support, and a button to log in with Firebase Authentication.
+/// On successful login, it navigates to the home screen.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -13,14 +17,24 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  // Controllers to capture user input for email and password fields.
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
+  // Controls whether the password is obscured in the input field.
   bool _hidePassword = true;
+
+  // Tracks the loading state during login to show a spinner in the button.
   bool _isLoading = false;
 
+  // Firebase Authentication instance for user login.
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  /// Attempts to log the user in using the entered email and password.
+  /// If successful, navigates to the home screen.
+  /// If login fails, displays a localized error message using a snackbar.
   Future<void> _login() async {
+    // Start loading spinner.
     setState(() => _isLoading = true);
     final localizer = AppLocalizations.of(context)!;
     try {
@@ -29,7 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordController.text.trim(),
       );
 
-      // Navigate to home on successful login
+      // Navigate to the home screen upon successful login.
       Navigator.pushReplacementNamed(context, AppRoutes.home);
     } on FirebaseAuthException catch (e) {
       String message;
@@ -47,6 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
           message = localizer.translate("login_failed");
       }
 
+      // Show a snackbar with a user-friendly error message based on Firebase error code.
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message)),
       );
@@ -55,9 +70,12 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  /// Builds the complete login UI with input fields, buttons,
+  /// and localized text with language toggle.
   @override
   Widget build(BuildContext context) {
     final localizer = AppLocalizations.of(context)!;
+    // Get the current language setting and a controller to toggle languages.
     final localeController = InheritedLocale.of(context);
     final isEnglish = localizer.locale.languageCode == 'en';
 
@@ -76,6 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  // App logo and title
                   Image.asset('assets/images/app_icon_teal.png', height: 250),
                   const SizedBox(height: 20),
                   const Text(
@@ -89,6 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 30),
 
+                  // Email input field
                   buildInputField(
                     keyboardType: TextInputType.emailAddress,
                     controller: _emailController,
@@ -98,6 +118,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 16),
 
+                  // Password input field with toggle
                   buildInputField(
                     keyboardType: TextInputType.visiblePassword,
                     controller: _passwordController,
@@ -110,6 +131,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 10),
 
+                  // Forgot password link
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
@@ -124,7 +146,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 10),
 
-                  // Log In Button
+                  // Login button with loading state
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -153,6 +175,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 24),
 
+                  // Sign-up link for new users
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -175,6 +198,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
 
+                  // Language toggle button
                   TextButton(
                     onPressed: () {
                       final newLocale = isEnglish

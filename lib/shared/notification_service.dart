@@ -5,11 +5,14 @@ import 'package:timezone/timezone.dart' as tz;
 import 'notification_logger.dart';
 
 class NotificationService {
+  // Plugin instance to manage local notifications on Android devices
   static final FlutterLocalNotificationsPlugin _notificationsPlugin =
   FlutterLocalNotificationsPlugin();
 
+  // Flag to ensure initialization is performed only once
   static bool _isInitialized = false;
 
+  // Initializes the notification plugin, sets up required settings, and requests permission
   Future<void> initialize() async {
     if (_isInitialized) return;
 
@@ -33,6 +36,7 @@ class NotificationService {
     _isInitialized = true;
   }
 
+  // Returns platform-specific notification settings used when displaying a notification
   NotificationDetails notificationDetails() {
     return const NotificationDetails(
       android: AndroidNotificationDetails(
@@ -45,6 +49,7 @@ class NotificationService {
     );
   }
 
+  // Immediately displays a notification with the given ID, title, and message
   Future<void> showNotification({
     required int id,
     required String title,
@@ -66,7 +71,7 @@ class NotificationService {
     });
   }
 
-  /// Schedule Notification (non-exact)
+  // Schedules a notification to appear at a specified future date and time
   Future<void> scheduleNotification({
     required int id,
     required String title,
@@ -86,7 +91,6 @@ class NotificationService {
         matchDateTimeComponents: DateTimeComponents.time, // optional
       );
 
-      // ✅ Log the scheduled notification for UI display
       await NotificationLogger.logNotification({
         'type': 'task_reminder',
         'title': title,
@@ -97,14 +101,16 @@ class NotificationService {
         'color': 'grey',
       });
     } catch (e) {
-      SnackBar(content: Text("Error scheduling notification: ${e.toString()}"));
+      // Error handling can be expanded here, e.g., log to a service
     }
   }
 
+  // Cancels all scheduled and active notifications
   Future<void> cancelAllNotifications() async {
     await _notificationsPlugin.cancelAll();
   }
 
+  // Cancels a single notification using its unique ID
   Future<void> cancelNotification(int id) async {
     await _notificationsPlugin.cancel(id);
   }

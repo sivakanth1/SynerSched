@@ -1,9 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
 
+/// A service class that provides authentication-related operations
+/// using Firebase Authentication.
 class AuthService {
+  /// Firebase authentication instance to interact with Firebase Auth APIs.
   static final _auth = FirebaseAuth.instance;
 
-  // Sign up with email and password
+  /// Creates a new user with the given email and password.
+  ///
+  /// Returns the created [User] object on success, or null on failure.
   static Future<User?> signUp(String email, String password) async {
     try {
       final userCredential = await _auth.createUserWithEmailAndPassword(
@@ -12,12 +17,14 @@ class AuthService {
       );
       return userCredential.user;
     } catch (e) {
-      print('Signup error: $e');
+      // Handle signup failure by returning null
       return null;
     }
   }
 
-  // Login with email and password
+  /// Signs in an existing user using the provided email and password.
+  ///
+  /// Returns the signed-in [User] object on success, or null on failure.
   static Future<User?> login(String email, String password) async {
     try {
       final userCredential = await _auth.signInWithEmailAndPassword(
@@ -26,19 +33,19 @@ class AuthService {
       );
       return userCredential.user;
     } catch (e) {
-      print('Login error: $e');
+      // Handle login failure by returning null
       return null;
     }
   }
 
-  // Logout
+  /// Signs out the currently logged-in user.
   static Future<void> logout() async {
     await _auth.signOut();
   }
 
-  // Current user
+  /// Gets the currently authenticated [User] object, if any.
   static User? get currentUser => _auth.currentUser;
 
-  // Is user logged in
+  /// Checks whether a user is currently signed in.
   static bool get isLoggedIn => _auth.currentUser != null;
 }

@@ -1,3 +1,6 @@
+/// This screen displays a list of collaboration boards that users can join or create.
+/// It includes filtering, searching, sorting, and chat integration using Stream.
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -14,11 +17,13 @@ class CollabBoardScreen extends StatefulWidget {
   State<CollabBoardScreen> createState() => _CollabBoardScreenState();
 }
 
+/// Manages state and logic for filtering, joining, and displaying collaboration boards.
 class _CollabBoardScreenState extends State<CollabBoardScreen> {
   final currentUserId = FirebaseAuth.instance.currentUser?.uid;
   final TextEditingController _searchController = TextEditingController();
   late String _sortOption;
 
+  /// Initializes the default sorting option after localization is available.
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -26,6 +31,7 @@ class _CollabBoardScreenState extends State<CollabBoardScreen> {
     _sortOption = localizer.translate("recent");
   }
 
+  /// Returns a stream of all collaboration documents ordered by creation time.
   Stream<QuerySnapshot> getCollabStream() {
     return FirebaseFirestore.instance
         .collection('collaborations')
@@ -33,6 +39,8 @@ class _CollabBoardScreenState extends State<CollabBoardScreen> {
         .snapshots();
   }
 
+  /// Handles the logic for joining a collaboration group and navigating to the chat screen.
+  /// If the user is not already a member, prompts for confirmation before joining.
   Future<void> _joinCollab(String collabId, String collabName, List members) async {
     final currentUserId = FirebaseAuth.instance.currentUser?.uid;
     if (currentUserId == null) return;
@@ -94,6 +102,8 @@ class _CollabBoardScreenState extends State<CollabBoardScreen> {
     }
   }
 
+  /// Applies search and filtering based on query text and selected sort option.
+  /// Filters by title, description, tags, department, and skills.
   List<DocumentSnapshot> _applyFilters(List<DocumentSnapshot> docs) {
     final localizer = AppLocalizations.of(context)!;
     String query = _searchController.text.toLowerCase();
@@ -122,6 +132,8 @@ class _CollabBoardScreenState extends State<CollabBoardScreen> {
     }).toList();
   }
 
+  /// Builds the main UI of the collaboration board screen, including search, sort,
+  /// filtered results list, and navigation to create new collaborations.
   @override
   Widget build(BuildContext context) {
     final localizer = AppLocalizations.of(context)!;
@@ -149,7 +161,7 @@ class _CollabBoardScreenState extends State<CollabBoardScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
               children: [
-                // 🔍 Search bar
+                // Search bar for filtering collaborations.
                 TextField(
                   controller: _searchController,
                   onChanged: (_) => setState(() {}),
@@ -163,7 +175,7 @@ class _CollabBoardScreenState extends State<CollabBoardScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                // 📦 Sort dropdown
+                // Sort dropdown for collaboration list.
                 Row(
                   children: [
                     Text(localizer.translate("sort_by"), style: const TextStyle(color: Colors.black87)),
@@ -236,6 +248,7 @@ class _CollabBoardScreenState extends State<CollabBoardScreen> {
   }
 }
 
+/// Reusable widget to display each collaboration entry with join status and metadata.
 class _CollabCard extends StatelessWidget {
   final String title;
   final String subtitle;

@@ -7,9 +7,13 @@ import '../../firebase/auth_service.dart';
 import '../../localization/app_localizations.dart';
 import '../../shared/notification_service.dart';
 
+// This screen displays the user's profile information such as name, department, year,
+// skills, and interests. It also allows the user to log out and navigate to edit their profile.
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
+  // Fetches the current user's profile information from Firestore.
+  // Returns a map of profile fields or null if not found.
   Future<Map<String, dynamic>?> _getProfileData() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return null;
@@ -27,6 +31,8 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final localizer = AppLocalizations.of(context)!;
+
+    // UI is wrapped inside a FutureBuilder to load the profile data asynchronously.
     return Container(
       decoration: const BoxDecoration(
         image: DecorationImage(
@@ -66,6 +72,7 @@ class ProfileScreen extends StatelessWidget {
                 return const Center(child: CircularProgressIndicator());
               }
 
+              // Display a message if no profile data is found.
               if (!snapshot.hasData || snapshot.data == null) {
                 return Center(child: Text(localizer.translate("no_profile_data")));
               }
@@ -77,6 +84,7 @@ class ProfileScreen extends StatelessWidget {
               final skills = List<String>.from(data['skills'] ?? []);
               final interests = data['interests'] ?? localizer.translate("no_interests");
 
+              // Build the visual layout for the user's profile data including avatar, name, department, year, skills, and interests.
               return SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 child: Column(
@@ -142,6 +150,7 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 40),
 
+                    // Logout button: clears session, cancels notifications, and navigates back to onboarding.
                     buildCustomButton(context, () async {
                       await AuthService.logout();
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -168,12 +177,14 @@ class ProfileScreen extends StatelessWidget {
   }
 }
 
+// A simple reusable widget for displaying each skill as a chip.
 class _SkillChip extends StatelessWidget {
   final String text;
   const _SkillChip(this.text);
 
   @override
   Widget build(BuildContext context) {
+    // Build the visual appearance of a single skill chip with styling.
     return Chip(
       label: Text(text),
       labelStyle: const TextStyle(fontWeight: FontWeight.w500),

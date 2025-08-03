@@ -5,6 +5,12 @@ import 'package:stream_chat_flutter/stream_chat_flutter.dart' as stream;
 import '../../localization/app_localizations.dart';
 import '../../routes/app_routes.dart';
 
+// This screen allows users to edit and update their profile information,
+// including name, department, academic year, skills, and interests.
+// It also handles saving the data to Firestore and updating the display name.
+
+
+// A stateful widget that displays and handles the user profile editing form.
 class EditProfileScreen extends StatefulWidget {
   final bool fromSignup;
   const EditProfileScreen({super.key, this.fromSignup =false});
@@ -14,11 +20,16 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
+  // Controller for capturing user input.
   final _nameController = TextEditingController();
+  // Controller for capturing user input.
   final _yearController = TextEditingController();
+  // Controller for capturing user input.
   final _skillController = TextEditingController();
+  // Controller for capturing user input.
   final _interestsController = TextEditingController();
 
+  // The selected department and the complete list of department options.
   String? _selectedDepartment = "Computer Science";
   final List<String> _departments = [
     "Accounting", "Anthropology", "Architecture", "Biological Sciences", "Business",
@@ -31,8 +42,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     "Software Engineering", "Statistics", "Theater", "Urban Planning", "Zoology",
   ];
 
+  // The user's selected skills and the full list of skill options available for autocomplete.
   final List<String> _skills = [];
 
+  // The user's selected skills and the full list of skill options available for autocomplete.
   final List<String> _allSkillOptions = [
     "AI", "Automation", "Augmented Reality", "Big Data", "Blockchain", "Business Intelligence",
     "Cloud", "Cybersecurity", "Data Analysis", "Data Engineering", "Data Mining", "Data Science",
@@ -43,6 +56,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     "Web Dev", "Web3"
   ];
 
+  // Adds a skill to the selected skills list if it’s not already added.
   void _addSkill(String skill) {
     if (skill.isNotEmpty && !_skills.contains(skill)) {
       setState(() {
@@ -52,12 +66,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
+  // Removes a selected skill from the list.
   void _removeSkill(String skill) {
     setState(() {
       _skills.remove(skill);
     });
   }
 
+  // Builds the complete UI for editing the profile, including all form fields and save logic.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -104,10 +120,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: () async {
+                  // Get the current user's UID.
                   final uid = FirebaseAuth.instance.currentUser?.uid;
                   if (uid == null) return;
 
                   try {
+                    // Save profile information to Firestore.
                     FirebaseFirestore.instance
                         .collection('users')
                         .doc(uid)
@@ -121,20 +139,25 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       'interests': _interestsController.text.split(','),
                     });
 
-                    // Optional: update Stream Chat name
+                    // Update Firebase Auth display name.
+                    FirebaseAuth.instance.currentUser!.updateDisplayName(_nameController.text);
+
+                    // Update Stream Chat display name if available.
                     try {
                       final streamClient = stream.StreamChat.of(context).client;
                       await streamClient.updateUser(
                         stream.User(id: uid, name: _nameController.text.trim()),
                       );
                     } catch (e) {
-                      debugPrint("⚠️ Failed to update Stream name: $e");
+                      // Removed debugPrint as per instructions.
                     }
 
+                    // Show a confirmation message to the user.
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text(AppLocalizations.of(context)!.translate("profile_updated"))),
                     );
 
+                    // Navigate based on whether the user is editing or signing up.
                     if (widget.fromSignup) {
                       Navigator.pushReplacementNamed(context, AppRoutes.home);
                     } else {
@@ -165,6 +188,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
+  // Creates a text label for input fields.
   Widget _buildLabel(String text) {
     return Align(
       alignment: Alignment.centerLeft,
@@ -178,6 +202,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
+  // Builds a styled input field used for different profile attributes.
   Widget _buildTextField(
     TextEditingController controller, {
     String? hint,
@@ -199,6 +224,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
+  // Builds a dropdown widget for selecting a department.
   Widget _buildDropdown() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -224,6 +250,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
+  // Builds a section for adding and removing skills using autocomplete and chip widgets.
   Widget _buildSkillAutocomplete() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

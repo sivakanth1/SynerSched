@@ -141,5 +141,14 @@
   "yes_build": "Yes, Build",
   "english": "English",
   "spanish": "Spanish",
-  "apply": "Apply"
+  "apply": "Apply",
+  "morning": "Morning",
+  "afternoon": "Afternoon",
+  "evening": "Evening",
+  "light": "Light",
+  "medium": "Medium",
+  "intense": "Intense",
+  "add_break": "Add Break",
+  "no_schedule_found": "No schedule found",
+  "no_upcoming_deadlines": "No upcoming deadlines"
 }

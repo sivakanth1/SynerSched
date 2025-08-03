@@ -1,3 +1,4 @@
+// This screen displays all system-generated notifications such as task reminders, class updates, or messages.
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:syner_sched/localization/app_localizations.dart';
@@ -15,12 +16,14 @@ class NotificationsScreen extends StatefulWidget {
 class _NotificationsScreenState extends State<NotificationsScreen> {
   List<Map<String, dynamic>> notifications = [];
 
+  // Initializes the state of the screen and loads notifications from local storage.
   @override
   void initState() {
     super.initState();
     _loadNotifications();
   }
 
+  // Loads notifications from the NotificationLogger and reverses the list to show the most recent first.
   Future<void> _loadNotifications() async {
     final data = await NotificationLogger.getNotifications();
     setState(() {
@@ -28,6 +31,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     });
   }
 
+  // Returns an appropriate icon based on the type of notification.
   IconData _getIcon(String type) {
     switch (type) {
       case 'task_reminder':
@@ -41,6 +45,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
+  // Returns a color to represent each notification type visually.
   Color _getColor(String type) {
     switch (type) {
       case 'task_reminder':
@@ -52,6 +57,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
+  // Builds the main UI for the notifications screen, including the app bar, delete button, and list of notifications.
   @override
   Widget build(BuildContext context) {
     final localizer = AppLocalizations.of(context)!;
@@ -102,6 +108,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     : ListView.builder(
                         itemCount: notifications.length,
                         itemBuilder: (context, index) {
+                          // Extracts the current notification item and parses its timestamp.
                           final item = notifications[index];
                           final title = AppLocalizations.of(
                             context,
@@ -112,6 +119,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               DateTime.now().toIso8601String());
 
                           final time = DateFormat('MMM d, h:mm a').format(parsedTime!);
+                          // Displays the notification inside a stylized card with icon, title, message, and timestamp.
                           return Card(
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(18),

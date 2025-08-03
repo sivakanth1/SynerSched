@@ -4,6 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 import '../../localization/app_localizations.dart';
 
+/// Screen that allows users to start a new collaboration by entering details
+/// such as title, description, department, and required skills.
+/// It handles creation of the collaboration in Firestore and sets up
+/// a corresponding Stream chat channel.
 class NewCollabScreen extends StatefulWidget {
   final StreamChatClient streamClient;
 
@@ -14,14 +18,21 @@ class NewCollabScreen extends StatefulWidget {
 }
 
 class _NewCollabScreenState extends State<NewCollabScreen> {
+  // Controller for the collaboration title input field
   final _titleController = TextEditingController();
+  // Controller for the collaboration description input field
   final _descController = TextEditingController();
+  // Controller for the tag input field used to add skills/tags
   final _tagController = TextEditingController();
+  // Currently authenticated Firebase user
   final _currentUser = FirebaseAuth.instance.currentUser;
 
+  // Currently selected department for the collaboration; default is "Computer Science"
   String? _selectedDepartment = "Computer Science";
+  // List of tags/skills added by the user for this collaboration
   final List<String> _tags = [];
 
+  /// Adds a new tag to the list if it's not empty and not already added.
   void _addTag(String tag) {
     if (tag.isNotEmpty && !_tags.contains(tag)) {
       setState(() {
@@ -31,6 +42,7 @@ class _NewCollabScreenState extends State<NewCollabScreen> {
     }
   }
 
+  /// Removes a tag from the list.
   void _removeTag(String tag) {
     setState(() => _tags.remove(tag));
   }
@@ -134,6 +146,8 @@ class _NewCollabScreenState extends State<NewCollabScreen> {
     );
   }
 
+  /// Builds an autocomplete text field for tags/skills input, allowing users
+  /// to search and add predefined tags easily.
   Widget _buildTagAutocomplete() {
     final allTags = [
       "AI", "Automation", "Augmented Reality", "Big Data", "Blockchain", "Business Intelligence",
@@ -176,6 +190,8 @@ class _NewCollabScreenState extends State<NewCollabScreen> {
     );
   }
 
+  /// Builds a label widget with styled text, used to label sections like
+  /// department and skills input areas.
   Widget _buildLabel(String text) {
     return Align(
       alignment: Alignment.centerLeft,
@@ -183,6 +199,8 @@ class _NewCollabScreenState extends State<NewCollabScreen> {
     );
   }
 
+  /// Builds an autocomplete text field for selecting the department associated
+  /// with the collaboration, with a predefined list of departments.
   Widget _buildDepartmentAutocomplete() {
     final allDepartments = [
       "Accounting", "Anthropology", "Architecture", "Biological Sciences", "Business",
@@ -224,6 +242,17 @@ class _NewCollabScreenState extends State<NewCollabScreen> {
     );
   }
 
+  /// Handles the creation of a new collaboration.
+  ///
+  /// Steps:
+  /// 1. Validate input fields and current user presence.
+  /// 2. Create a new document in Firestore 'collaborations' collection with
+  ///    collaboration details including title, description, department, skills,
+  ///    members, creator info, and timestamp.
+  /// 3. Create a new Stream chat channel with the Firestore document ID as channel ID.
+  /// 4. Update the Firestore document with the Stream channel ID.
+  /// 5. Show success message and navigate back on success.
+  /// 6. Show error message on failure.
   Future<void> _createCollab() async {
     final title = _titleController.text.trim();
     final desc = _descController.text.trim();

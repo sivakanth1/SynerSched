@@ -7,6 +7,8 @@ import 'package:syner_sched/firebase/firestore_service.dart';
 import 'package:syner_sched/localization/app_localizations.dart';
 import 'package:syner_sched/routes/app_routes.dart';
 import 'package:syner_sched/shared/custom_app_bar.dart';
+import 'package:syner_sched/shared/utils.dart';
+import '../../firebase/schedule_service.dart';
 import '../../firebase/task_service.dart';
 import '../../shared/encryption_helper.dart';
 import '../../shared/notification_service.dart';
@@ -20,25 +22,27 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
+// The state for the main HomeScreen, which displays the user's welcome message,
+// upcoming deadlines, schedule, and collaboration highlights. Handles navigation
+// and task addition.
 class _HomeScreenState extends State<HomeScreen> {
   String uid = '';
-  final List<String> _scheduleItems = [
-    "CSCI 6362 – 10:00 AM",
-    "STAT 5300 – 1:30 PM",
-  ];
+  String name = '';
 
   @override
   void initState() {
-    // TODO: implement initState
+    // Initialize state: fetch user tasks and set user ID and display name from FirebaseAuth.
     super.initState();
     getTasks();
     uid = FirebaseAuth.instance.currentUser!.uid;
+    name = FirebaseAuth.instance.currentUser!.displayName!;
   }
 
   void getTasks() async {
     await TaskService.getUserTasks();
   }
 
+  // Builds the main UI layout of the home screen, including schedule, deadlines, and collaboration sections.
   @override
   Widget build(BuildContext context) {
     final localizer = AppLocalizations.of(context)!;
@@ -61,9 +65,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   localizer.translate("welcome"),
                   style: const TextStyle(color: Color(0xFF2D4F48)),
                 ),
-                const Text(
-                  'Siva 👋',
-                  style: TextStyle(color: Color(0xFF2D4F48)),
+                Text(
+                  '$name 👋',
+                  style: const TextStyle(color: Color(0xFF2D4F48)),
                 ),
               ],
             ),
@@ -97,26 +101,23 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ElevatedButton(onPressed: (){
-                //   NotificationService().showNotification(id: 1, title: "Notification Title", body: "Notification Body");
-                // }, child: Text("Text Notification")),
                 const SizedBox(height: 30),
                 GestureDetector(
-                  onTap: () {
-                    TabControllerProvider.tabIndex.value = 1;
+                  onTap: () async {
+                    await Utility.ensureScheduleExists(context);
                   },
                   child: _buildUpcomingDeadlines(localizer),
                 ),
                 const SizedBox(height: 30),
                 GestureDetector(
-                  onTap: () {
-                    TabControllerProvider.tabIndex.value = 1;
+                  onTap: () async {
+                    await Utility.ensureScheduleExists(context);
                   },
                   child: _buildMyScheduleCard(localizer),
                 ),
                 const SizedBox(height: 30),
                 GestureDetector(
-                  onTap: () {
+                  onTap: () async {
                     TabControllerProvider.tabIndex.value = 2;
                   },
                   child: _buildCollaborationCard(localizer),
@@ -129,6 +130,9 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// Builds the Upcoming Deadlines card.
+  /// Fetches tasks from Firestore and displays upcoming deadlines.
+  /// Shows a message if there are no upcoming tasks.
   Widget _buildUpcomingDeadlines(AppLocalizations localizer) {
     return StreamBuilder<List<Map<String, dynamic>>>(
       stream: FirestoreService().getTasksStream(),
@@ -211,39 +215,47 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              ...upcomingTasks.map((task) {
-                final deadlineField = task['deadline'];
-                late DateTime deadline;
-
-                if (deadlineField is Timestamp) {
-                  deadline = deadlineField.toDate();
-                } else if (deadlineField is String) {
-                  deadline = DateTime.tryParse(deadlineField) ?? DateTime.now();
-                } else {
-                  deadline = DateTime.now(); // fallback
-                }
-
-                final formatted = DateFormat(
-                  'MMM dd, hh:mm a',
-                ).format(deadline);
-                final decryptedTitle = EncryptionHelper.decryptText(
-                  task['title'],
-                  FirebaseAuth.instance.currentUser?.uid ?? '',
-                );
-
-                return ListTile(
+              if (upcomingTasks.isEmpty)
+                ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: const Icon(
-                    Icons.calendar_today_outlined,
-                    color: Color(0xFF2D4F48),
-                  ),
+                  leading: const Icon(Icons.info_outline, color: Color(0xFF2D4F48)),
                   title: Text(
-                    decryptedTitle,
+                    localizer.translate("no_upcoming_deadlines"),
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
-                  subtitle: Text(formatted),
-                );
-              }),
+                )
+              else
+                ...upcomingTasks.map((task) {
+                  final deadlineField = task['deadline'];
+                  late DateTime deadline;
+
+                  if (deadlineField is Timestamp) {
+                    deadline = deadlineField.toDate();
+                  } else if (deadlineField is String) {
+                    deadline = DateTime.tryParse(deadlineField) ?? DateTime.now();
+                  } else {
+                    deadline = DateTime.now(); // fallback
+                  }
+
+                  final formatted = DateFormat('MMM dd, hh:mm a').format(deadline);
+                  final decryptedTitle = EncryptionHelper.decryptText(
+                    task['title'],
+                    FirebaseAuth.instance.currentUser?.uid ?? '',
+                  );
+
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(
+                      Icons.calendar_today_outlined,
+                      color: Color(0xFF2D4F48),
+                    ),
+                    title: Text(
+                      decryptedTitle,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: Text(formatted),
+                  );
+                }),
             ],
           ),
         );
@@ -251,65 +263,86 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// Builds the My Schedule card.
+  /// Fetches the user's schedule and lists selected courses.
+  /// Displays a message if no schedule is found.
   Widget _buildMyScheduleCard(AppLocalizations localizer) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: ScheduleService.getSchedules().then((value) => value as Map<String, dynamic>?),
+      builder: (context, snapshot) {
+        final schedule = snapshot.data;
+        final selectedCourses = schedule?['selectedCourses'] ?? [];
+
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const CircleAvatar(
-                radius: 24,
-                backgroundColor: Color(0xFFFF6E5B),
-                child: Icon(Icons.schedule_rounded, color: Colors.white),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  localizer.translate("my_schedule"),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
+              Row(
+                children: [
+                  const CircleAvatar(
+                    radius: 24,
+                    backgroundColor: Color(0xFFFF6E5B),
+                    child: Icon(Icons.schedule_rounded, color: Colors.white),
                   ),
-                ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      localizer.translate("my_schedule"),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2D4F48),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      localizer.translate("build_my_schedule"),
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
+              const SizedBox(height: 16),
+              if (selectedCourses.isEmpty)
+                Text(localizer.translate("no_schedule_found"))
+              else
+                ...List<Widget>.from(
+                  selectedCourses.map((course) {
+                    final name = course['courseName'] ?? 'Untitled';
+                    final time = course['startTime'] ?? '';
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.check_circle_outline, color: Color(0xFF2D4F48)),
+                      title: Text(
+                        '$name – $time',
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    );
+                  }),
                 ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF2D4F48),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child:Text(localizer.translate("build_my_schedule"), style: TextStyle(color: Colors.white)),
-              ),
             ],
           ),
-          const SizedBox(height: 16),
-          ..._scheduleItems.map((item) {
-            return ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(
-                Icons.check_circle_outline,
-                color: Color(0xFF2D4F48),
-              ),
-              title: Text(
-                item,
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-            );
-          }),
-        ],
-      ),
+        );
+      },
     );
   }
 
+  /// Builds the Collaboration Highlights card.
+  /// Lists the user's joined collaborations or displays a message if none.
+  /// Tapping a collab navigates to the collab board tab.
   Widget _buildCollaborationCard(AppLocalizations localizer) {
     return StreamBuilder<List<Map<String, dynamic>>>(
       stream: FirestoreService().getUserJoinedCollaborations(uid),
@@ -360,23 +393,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                        onTap: () {
-                          // final channelId = collab['streamChannelId'];
-                          // if (channelId != null && channelId.isNotEmpty) {
-                          //   Navigator.pushNamed(
-                          //     context,
-                          //     AppRoutes.chatScreen,
-                          //     arguments: {
-                          //       'streamClient': widget.streamClient,
-                          //       'collabId': collab['collabId'] ?? '',
-                          //       'collabName': collab['title'] ?? 'Chat',
-                          //     },
-                          //   );
-                          // } else {
-                          //   // fallback to open collab board
-                            TabControllerProvider.tabIndex.value = 2;
-                          // }
-                        },
+                    onTap: () {
+                      // Navigates to the collaboration board tab when a collab is tapped.
+                      TabControllerProvider.tabIndex.value = 2;
+                    },
                   ),
                 ),
             ],
@@ -386,6 +406,9 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  /// Shows a dialog for adding a new task.
+  /// Handles input for task title, date, and time.
+  /// Validates input and, if valid, saves the task to Firestore and schedules notifications.
   void _showAddTaskDialog(BuildContext context) {
     final localizer = AppLocalizations.of(context)!;
     final titleController = TextEditingController();
@@ -456,6 +479,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 ElevatedButton(
                   onPressed: () async {
+                    // Validate that all fields are filled before saving the task.
                     if (titleController.text.isNotEmpty &&
                         selectedDate != null &&
                         selectedTime != null) {
@@ -467,18 +491,16 @@ class _HomeScreenState extends State<HomeScreen> {
                         selectedTime!.minute,
                       );
 
-                      // Save task to Firebase...
+                      // Save the new task to Firestore.
                       await FirestoreService().addTask(
                         titleController.text,
                         deadline,
                       );
 
-                      // Schedule reminders
+                      // Schedule notifications for 1 hour, 30 minutes, and 15 minutes before the deadline.
                       final notifService = NotificationService();
                       await notifService.scheduleNotification(
-                        id:
-                            deadline.millisecondsSinceEpoch ~/
-                            1000, // unique id
+                        id: deadline.millisecondsSinceEpoch ~/ 1000, // unique id
                         title: "Upcoming Task",
                         body: localizer.translate("task_due_1h").replaceFirst("{0}", titleController.text),
                         scheduledTime: deadline.subtract(
