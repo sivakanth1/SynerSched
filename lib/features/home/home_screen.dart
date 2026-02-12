@@ -499,32 +499,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
                       // Schedule notifications for 1 hour, 30 minutes, and 15 minutes before the deadline.
                       final notifService = NotificationService();
-                      await notifService.scheduleNotification(
-                        id: deadline.millisecondsSinceEpoch ~/ 1000, // unique id
-                        title: "Upcoming Task",
-                        body: localizer.translate("task_due_1h").replaceFirst("{0}", titleController.text),
-                        scheduledTime: deadline.subtract(
-                          const Duration(hours: 1),
-                        ),
-                      );
+                      final reminders = [
+                        (offset: const Duration(hours: 1), key: "task_due_1h"),
+                        (offset: const Duration(minutes: 30), key: "task_due_30m"),
+                        (offset: const Duration(minutes: 15), key: "task_due_15m"),
+                      ];
 
-                      await notifService.scheduleNotification(
-                        id: deadline.millisecondsSinceEpoch ~/ 1000 + 1,
-                        title: "Upcoming Task",
-                        body: localizer.translate("task_due_30m").replaceFirst("{0}", titleController.text),
-                        scheduledTime: deadline.subtract(
-                          const Duration(minutes: 30),
-                        ),
-                      );
-
-                      await notifService.scheduleNotification(
-                        id: deadline.millisecondsSinceEpoch ~/ 1000 + 2,
-                        title: "Upcoming Task",
-                        body: localizer.translate("task_due_15m").replaceFirst("{0}", titleController.text),
-                        scheduledTime: deadline.subtract(
-                          const Duration(minutes: 15),
-                        ),
-                      );
+                      for (var i = 0; i < reminders.length; i++) {
+                        final reminder = reminders[i];
+                        await notifService.scheduleNotification(
+                          id: deadline.millisecondsSinceEpoch ~/ 1000 + i, // unique id
+                          title: "Upcoming Task",
+                          body: localizer.translate(reminder.key).replaceFirst("{0}", titleController.text),
+                          scheduledTime: deadline.subtract(reminder.offset),
+                        );
+                      }
 
                       Navigator.pop(context);
                     }
