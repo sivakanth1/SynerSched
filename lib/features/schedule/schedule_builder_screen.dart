@@ -7,6 +7,7 @@ import 'package:syner_sched/routes/app_routes.dart';
 import 'package:syner_sched/shared/custom_button.dart';
 import 'package:syner_sched/shared/custom_nav_bar.dart';
 import 'package:syner_sched/shared/utils.dart';
+import 'package:syner_sched/shared/constants.dart';
 import '../../firebase/schedule_service.dart';
 
 class ScheduleBuilderScreen extends StatefulWidget {
@@ -23,7 +24,7 @@ class _ScheduleBuilderScreenState extends State<ScheduleBuilderScreen> {
   String _courseType = 'Required';
   List<Map<String, dynamic>> _selectedCourses = [
     {
-      'courseName': 'COSC 5311 - Advanced Operating Systems',
+      'courseName': AppConstants.availableCourses.first,
       'startTime': '',
       'endTime': '',
       'days': <String>[]
@@ -32,15 +33,6 @@ class _ScheduleBuilderScreenState extends State<ScheduleBuilderScreen> {
   List<Map<String, TimeOfDay?>> _breaks = [];
   String _preferredTime = 'morning';
   String _workloadLevel = 'medium';
-
-  final List<String> courses = [
-    'COSC 5311 - Advanced Operating Systems',
-    'COSC 5360 - Parallel Computing',
-    'COSC 5321 - Database Systems',
-    'COSC 5340 - Computer Networks',
-    'COSC 5315 - Software Engineering',
-    'COSC 5390 - Advanced Algorithms',
-  ];
 
   @override
   void initState() {
@@ -190,7 +182,7 @@ class _ScheduleBuilderScreenState extends State<ScheduleBuilderScreen> {
     if (_selectedCourses.length < 6) {
       setState(() {
         _selectedCourses.add({
-          'courseName': courses.first,
+          'courseName': AppConstants.availableCourses.first,
           'startTime': '',
           'endTime': '',
           'days': <String>[]
@@ -501,7 +493,7 @@ class _ScheduleBuilderScreenState extends State<ScheduleBuilderScreen> {
             setState(() => _selectedCourses[index]['courseName'] = value);
           }
         },
-        items: courses.map((course) {
+        items: AppConstants.availableCourses.map((course) {
           return DropdownMenuItem(value: course, child: Text(course));
         }).toList(),
       ),
