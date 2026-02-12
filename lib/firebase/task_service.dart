@@ -2,11 +2,22 @@
 /// It supports creating, retrieving, updating, deleting, and saving tasks along with encryption and decryption of task titles.
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import '../shared/encryption_helper.dart';
 
 class TaskService {
-  static final _firestore = FirebaseFirestore.instance;
-  static final _auth = FirebaseAuth.instance;
+  static FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  static FirebaseAuth _auth = FirebaseAuth.instance;
+
+  @visibleForTesting
+  static void setFirestoreInstance(FirebaseFirestore firestore) {
+    _firestore = firestore;
+  }
+
+  @visibleForTesting
+  static void setAuthInstance(FirebaseAuth auth) {
+    _auth = auth;
+  }
 
   /// Adds a new task to the Firestore under the authenticated user's tasks collection.
   /// The title is encrypted before storage to maintain user data privacy.
@@ -17,7 +28,7 @@ class TaskService {
     final encryptedTitle = EncryptionHelper.encryptText(title, user.uid);
 
     //  To ensure that offline tasks don’t duplicate
-    final taskRef = FirebaseFirestore.instance
+    final taskRef = _firestore
         .collection('users')
         .doc(user.uid)
         .collection('tasks')
@@ -90,10 +101,10 @@ class TaskService {
   /// Any previously saved allocated tasks are deleted before saving the new ones.
   /// Fetches the currently authenticated user for saving allocated tasks.
   static Future<void> saveAllocatedTasks(List<Map<String, dynamic>> tasks) async {
-    final user = FirebaseAuth.instance.currentUser;
+    final user = _auth.currentUser;
     if (user == null) return;
 
-    final userDoc = FirebaseFirestore.instance.collection('users').doc(user.uid);
+    final userDoc = _firestore.collection('users').doc(user.uid);
     final taskCollection = userDoc.collection('allocated_tasks');
 
     // Clear existing tasks before saving new ones
@@ -110,10 +121,10 @@ class TaskService {
 
   /// Fetches all allocated task slots for the current user.
   static Future<List<Map<String, dynamic>>> getAllocatedTasks() async {
-    final user = FirebaseAuth.instance.currentUser;
+    final user = _auth.currentUser;
     if (user == null) return [];
 
-    final snapshot = await FirebaseFirestore.instance
+    final snapshot = await _firestore
         .collection('users')
         .doc(user.uid)
         .collection('allocated_tasks')
@@ -133,8 +144,22 @@ class TaskService {
         .collection('tasks')
         .get();
 
+    WriteBatch batch = _firestore.batch();
+    int batchCount = 0;
+
     for (var doc in snapshot.docs) {
-      await doc.reference.delete();
+      batch.delete(doc.reference);
+      batchCount++;
+
+      if (batchCount >= 500) {
+        await batch.commit();
+        batch = _firestore.batch();
+        batchCount = 0;
+      }
+    }
+
+    if (batchCount > 0) {
+      await batch.commit();
     }
   }
 
@@ -158,7 +183,7 @@ class TaskService {
   /// Deletes tasks from the 'tasks' collection where the start time matches the given ISO string.
   /// Used for cleaning up scheduled task blocks.
   static Future<void> deleteTaskByStart(String startIso) async {
-    final snapshot = await FirebaseFirestore.instance
+    final snapshot = await _firestore
         .collection('tasks')
         .where('start', isEqualTo: startIso)
         .get();
