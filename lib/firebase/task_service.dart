@@ -98,13 +98,36 @@ class TaskService {
 
     // Clear existing tasks before saving new ones
     final existing = await taskCollection.get();
+
+    var batch = taskCollection.firestore.batch();
+    int operationCount = 0;
+
     for (var doc in existing.docs) {
-      await doc.reference.delete();
+      batch.delete(doc.reference);
+      operationCount++;
+
+      if (operationCount >= 500) {
+        await batch.commit();
+        batch = taskCollection.firestore.batch();
+        operationCount = 0;
+      }
     }
 
     // Add new tasks
     for (var task in tasks) {
-      await taskCollection.add(task);
+      final newDocRef = taskCollection.doc();
+      batch.set(newDocRef, task);
+      operationCount++;
+
+      if (operationCount >= 500) {
+        await batch.commit();
+        batch = taskCollection.firestore.batch();
+        operationCount = 0;
+      }
+    }
+
+    if (operationCount > 0) {
+      await batch.commit();
     }
   }
 
