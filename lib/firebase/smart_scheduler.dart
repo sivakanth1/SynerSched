@@ -297,7 +297,7 @@ class SmartScheduler {
         grid.add({
           'day': day,
           'hour': hour,
-          'time': '${_formatTime(hour as DateTime)} - ${_formatTime((hour + 1) as DateTime)}',
+          'time': '${_formatTime(start)} - ${_formatTime(end)}',
           'type': 'free',
           'title': '',
           'start': start.toIso8601String(),
