@@ -4,6 +4,7 @@ import 'package:syner_sched/localization/app_localizations.dart';
 import 'package:syner_sched/localization/inherited_locale.dart';
 import 'package:syner_sched/routes/app_routes.dart';
 import 'package:syner_sched/shared/build_input_field.dart';
+import 'package:syner_sched/shared/email_validator.dart';
 
 /// This screen provides the login interface for users.
 /// It includes email and password input fields, password visibility toggle,
@@ -37,9 +38,19 @@ class _LoginScreenState extends State<LoginScreen> {
     // Start loading spinner.
     setState(() => _isLoading = true);
     final localizer = AppLocalizations.of(context)!;
+
+    final email = _emailController.text.trim();
+    if (!EmailValidator.isEmailValid(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(localizer.translate("invalid_email"))),
+      );
+      setState(() => _isLoading = false);
+      return;
+    }
+
     try {
       await _auth.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
+        email: email,
         password: _passwordController.text.trim(),
       );
 
