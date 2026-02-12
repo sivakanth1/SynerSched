@@ -154,5 +154,14 @@
   "intense": "Intense",
   "add_break": "Add Break",
   "no_schedule_found": "No schedule found",
-  "no_upcoming_deadlines": "No upcoming deadlines"
+  "no_upcoming_deadlines": "No upcoming deadlines",
+  "invalid_name_length": "Name must be between 2 and 50 characters.",
+  "invalid_name_chars": "Name can only contain letters, spaces, hyphens, and apostrophes.",
+  "invalid_year_length": "Year must be between 2 and 20 characters.",
+  "invalid_year_chars": "Year can only contain letters, numbers, and spaces.",
+  "invalid_interests_length": "Each interest must be between 2 and 30 characters.",
+  "invalid_interests_count": "You can have a maximum of 10 interests.",
+  "invalid_interests_chars": "Interests can only contain letters, numbers, and spaces.",
+  "invalid_skills_count": "You can have a maximum of 20 skills.",
+  "invalid_skills_length": "Each skill must be 30 characters or less."
 }

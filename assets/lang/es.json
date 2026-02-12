@@ -154,5 +154,14 @@
   "intense": "Intenso",
   "add_break": "Agregar descanso",
   "no_schedule_found": "No se encontró ningún horario",
-  "no_upcoming_deadlines": "No hay fechas límite próximas"
+  "no_upcoming_deadlines": "No hay fechas límite próximas",
+  "invalid_name_length": "El nombre debe tener entre 2 y 50 caracteres.",
+  "invalid_name_chars": "El nombre solo puede contener letras, espacios, guiones y apóstrofes.",
+  "invalid_year_length": "El año debe tener entre 2 y 20 caracteres.",
+  "invalid_year_chars": "El año solo puede contener letras, números y espacios.",
+  "invalid_interests_length": "Cada interés debe tener entre 2 y 30 caracteres.",
+  "invalid_interests_count": "Puedes tener un máximo de 10 intereses.",
+  "invalid_interests_chars": "Los intereses solo pueden contener letras, números y espacios.",
+  "invalid_skills_count": "Puedes tener un máximo de 20 habilidades.",
+  "invalid_skills_length": "Cada habilidad debe tener 30 caracteres o menos."
 }
