@@ -15,10 +15,13 @@ import 'firebase_options.dart';
 import 'localization/inherited_locale.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:stream_chat_flutter/stream_chat_flutter.dart' as stream;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   // Ensures Flutter bindings are initialized before using any plugins.
   WidgetsFlutterBinding.ensureInitialized();
+  // Loads environment variables from the .env file.
+  await dotenv.load(fileName: ".env");
   // Forces the app to remain in portrait orientation.
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   // Initializes Firebase with platform-specific configuration.
@@ -55,7 +58,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     _streamClient = stream.StreamChatClient(
-      'wrdqf8s3gjmh',
+      dotenv.env['STREAM_API_KEY']!,
       logLevel: stream.Level.INFO,
     );
   }
