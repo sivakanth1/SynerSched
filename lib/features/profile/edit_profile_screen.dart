@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart' as stream;
 import '../../localization/app_localizations.dart';
 import '../../routes/app_routes.dart';
+import '../../shared/profile_validator.dart';
 
 // This screen allows users to edit and update their profile information,
 // including name, department, academic year, skills, and interests.
@@ -124,6 +125,45 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   final uid = FirebaseAuth.instance.currentUser?.uid;
                   if (uid == null) return;
 
+                  // Validate inputs
+                  final nameError = ProfileValidator.validateName(_nameController.text);
+                  if (nameError != null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(AppLocalizations.of(context)!.translate(nameError))),
+                    );
+                    return;
+                  }
+
+                  final yearError = ProfileValidator.validateYear(_yearController.text);
+                  if (yearError != null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(AppLocalizations.of(context)!.translate(yearError))),
+                    );
+                    return;
+                  }
+
+                  final processedInterests = _interestsController.text
+                      .split(',')
+                      .map((e) => e.trim())
+                      .where((e) => e.isNotEmpty)
+                      .toList();
+
+                  final interestsError = ProfileValidator.validateInterests(processedInterests);
+                  if (interestsError != null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(AppLocalizations.of(context)!.translate(interestsError))),
+                    );
+                    return;
+                  }
+
+                  final skillsError = ProfileValidator.validateSkills(_skills);
+                  if (skillsError != null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(AppLocalizations.of(context)!.translate(skillsError))),
+                    );
+                    return;
+                  }
+
                   try {
                     // Save profile information to Firestore.
                     FirebaseFirestore.instance
@@ -132,15 +172,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         .collection('profile')
                         .doc('info') // <- you can name this anything; 'info' is a good default
                         .set({
-                      'name': _nameController.text,
+                      'name': _nameController.text.trim(),
                       'department': _selectedDepartment,
-                      'year': _yearController.text,
+                      'year': _yearController.text.trim(),
                       'skills': _skills,
-                      'interests': _interestsController.text.split(','),
+                      'interests': processedInterests,
                     });
 
                     // Update Firebase Auth display name.
-                    FirebaseAuth.instance.currentUser!.updateDisplayName(_nameController.text);
+                    FirebaseAuth.instance.currentUser!.updateDisplayName(_nameController.text.trim());
 
                     // Update Stream Chat display name if available.
                     try {
