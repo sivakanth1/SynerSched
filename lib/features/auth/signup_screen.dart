@@ -8,6 +8,7 @@ import 'package:syner_sched/localization/app_localizations.dart';
 import 'package:syner_sched/routes/app_routes.dart';
 import 'package:syner_sched/firebase/auth_service.dart';
 import '../../shared/build_input_field.dart';
+import '../../shared/password_validator.dart';
 import '../profile/edit_profile_screen.dart';
 
 // SignupScreen is a stateful widget that displays the signup form to the user.
@@ -28,16 +29,6 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
-
-  // Validates password complexity including length, uppercase, lowercase, digit, and special character
-  bool _isPasswordValid(String password) {
-    final lengthValid = password.length >= 8 && password.length <= 16;
-    final hasUpper = password.contains(RegExp(r'[A-Z]'));
-    final hasLower = password.contains(RegExp(r'[a-z]'));
-    final hasDigit = password.contains(RegExp(r'\d'));
-    final hasSpecial = password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
-    return lengthValid && hasUpper && hasLower && hasDigit && hasSpecial;
-  }
 
   // Handles the signup process: validates input, interacts with AuthService, and manages UI state.
   void _handleSignup() async {
@@ -63,7 +54,7 @@ class _SignupScreenState extends State<SignupScreen> {
     }
 
     // Check if password meets the complexity requirements
-    if (!_isPasswordValid(password)) {
+    if (!PasswordValidator.isPasswordValid(password)) {
       setState(() {
         _error = localizer.translate("password_policy_message");
       });
