@@ -154,5 +154,12 @@
   "intense": "Intense",
   "add_break": "Add Break",
   "no_schedule_found": "No schedule found",
-  "no_upcoming_deadlines": "No upcoming deadlines"
+  "no_upcoming_deadlines": "No upcoming deadlines",
+  "title_too_long": "Title must be 100 characters or less",
+  "description_too_long": "Description must be 500 characters or less",
+  "too_many_tags": "You can add up to 10 tags only",
+  "tag_too_long": "Tag must be 30 characters or less",
+  "title_empty": "Please enter a title",
+  "description_empty": "Please enter a description",
+  "tag_empty": "Tag cannot be empty"
 }

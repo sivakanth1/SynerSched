@@ -154,5 +154,12 @@
   "intense": "Intenso",
   "add_break": "Agregar descanso",
   "no_schedule_found": "No se encontró ningún horario",
-  "no_upcoming_deadlines": "No hay fechas límite próximas"
+  "no_upcoming_deadlines": "No hay fechas límite próximas",
+  "title_too_long": "El título debe tener 100 caracteres o menos",
+  "description_too_long": "La descripción debe tener 500 caracteres o menos",
+  "too_many_tags": "Solo puedes agregar hasta 10 etiquetas",
+  "tag_too_long": "La etiqueta debe tener 30 caracteres o menos",
+  "title_empty": "Por favor ingresa un título",
+  "description_empty": "Por favor ingresa una descripción",
+  "tag_empty": "La etiqueta no puede estar vacía"
 }
