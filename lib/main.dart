@@ -31,7 +31,7 @@ void main() async {
   // Loads timezone data for scheduling notifications across timezones.
   tz.initializeTimeZones();
   // Initializes the notification service for handling local notifications.
-  NotificationService().initialize();
+  await NotificationService().initialize();
 
   runApp(const MyApp());
 }
