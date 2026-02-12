@@ -1,6 +1,5 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/material.dart';
-import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'notification_logger.dart';
 
@@ -13,6 +12,7 @@ class NotificationService {
   static bool _isInitialized = false;
 
   // Initializes the notification plugin, sets up required settings, and requests permission
+  // Note: Timezone initialization (tz.initializeTimeZones()) must be called before this service is initialized.
   Future<void> initialize() async {
     if (_isInitialized) return;
 
@@ -30,8 +30,6 @@ class NotificationService {
         .resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>()
         ?.requestNotificationsPermission();
-
-    tz.initializeTimeZones();
 
     _isInitialized = true;
   }
