@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 import '../../localization/app_localizations.dart';
+import 'collab_validator.dart';
 
 /// Screen that allows users to start a new collaboration by entering details
 /// such as title, description, department, and required skills.
@@ -34,6 +35,18 @@ class _NewCollabScreenState extends State<NewCollabScreen> {
 
   /// Adds a new tag to the list if it's not empty and not already added.
   void _addTag(String tag) {
+    final tagError = CollabValidator.validateTag(tag);
+    if (tagError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.translate(tagError))));
+      return;
+    }
+
+    final countError = CollabValidator.validateTagsCount(_tags);
+    if (countError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.translate(countError))));
+      return;
+    }
+
     if (tag.isNotEmpty && !_tags.contains(tag)) {
       setState(() {
         _tags.add(tag);
@@ -256,7 +269,20 @@ class _NewCollabScreenState extends State<NewCollabScreen> {
   Future<void> _createCollab() async {
     final title = _titleController.text.trim();
     final desc = _descController.text.trim();
-    if (title.isEmpty || desc.isEmpty || _currentUser == null) {
+
+    final titleError = CollabValidator.validateTitle(title);
+    if (titleError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.translate(titleError))));
+      return;
+    }
+
+    final descError = CollabValidator.validateDescription(desc);
+    if (descError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.translate(descError))));
+      return;
+    }
+
+    if (_currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.translate("join_collaboration_prompt"))));
       return;
     }
