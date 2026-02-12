@@ -9,7 +9,6 @@ import 'package:syner_sched/routes/app_routes.dart';
 import 'package:syner_sched/shared/custom_app_bar.dart';
 import 'package:syner_sched/shared/utils.dart';
 import '../../firebase/schedule_service.dart';
-import '../../firebase/task_service.dart';
 import '../../shared/encryption_helper.dart';
 import '../../shared/notification_service.dart';
 import '../../shared/tab_controller_provider.dart';
@@ -31,15 +30,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
-    // Initialize state: fetch user tasks and set user ID and display name from FirebaseAuth.
+    // Initialize state: set user ID and display name from FirebaseAuth.
     super.initState();
-    getTasks();
     uid = FirebaseAuth.instance.currentUser!.uid;
     name = FirebaseAuth.instance.currentUser!.displayName!;
-  }
-
-  void getTasks() async {
-    await TaskService.getUserTasks();
   }
 
   // Builds the main UI layout of the home screen, including schedule, deadlines, and collaboration sections.
