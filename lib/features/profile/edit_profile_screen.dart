@@ -126,7 +126,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                   try {
                     // Save profile information to Firestore.
-                    FirebaseFirestore.instance
+                    await FirebaseFirestore.instance
                         .collection('users')
                         .doc(uid)
                         .collection('profile')
@@ -140,7 +140,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     });
 
                     // Update Firebase Auth display name.
-                    FirebaseAuth.instance.currentUser!.updateDisplayName(_nameController.text);
+                    await FirebaseAuth.instance.currentUser!.updateDisplayName(_nameController.text);
 
                     // Update Stream Chat display name if available.
                     try {
@@ -151,6 +151,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     } catch (e) {
                       // Removed debugPrint as per instructions.
                     }
+
+                    if (!mounted) return;
 
                     // Show a confirmation message to the user.
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -164,9 +166,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       Navigator.pop(context); // just go back to ProfileScreen
                     }
                   } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('${AppLocalizations.of(context)!.translate("error_saving_profile")}: $e')),
-                    );
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('${AppLocalizations.of(context)!.translate("error_saving_profile")}: $e')),
+                      );
+                    }
                   }
                 },
                 icon: const Icon(Icons.check),
