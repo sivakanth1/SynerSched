@@ -8,6 +8,7 @@ import 'package:syner_sched/localization/app_localizations.dart';
 import 'package:syner_sched/routes/app_routes.dart';
 import 'package:syner_sched/firebase/auth_service.dart';
 import '../../shared/build_input_field.dart';
+import '../../shared/email_validator.dart';
 import '../../shared/password_validator.dart';
 import '../profile/edit_profile_screen.dart';
 
@@ -41,6 +42,14 @@ class _SignupScreenState extends State<SignupScreen> {
     if (email.isEmpty || password.isEmpty || confirm.isEmpty) {
       setState(() {
         _error = localizer.translate("fill_all_fields");
+      });
+      return;
+    }
+
+    // Check if email format is valid
+    if (!EmailValidator.isEmailValid(email)) {
+      setState(() {
+        _error = localizer.translate("invalid_email");
       });
       return;
     }
