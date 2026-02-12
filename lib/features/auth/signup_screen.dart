@@ -70,6 +70,8 @@ class _SignupScreenState extends State<SignupScreen> {
     // Attempt to sign up the user using AuthService
     final user = await AuthService.signUp(email, password);
 
+    if (!mounted) return;
+
     setState(() => _isLoading = false);
 
     // If signup is successful, navigate to EditProfileScreen
