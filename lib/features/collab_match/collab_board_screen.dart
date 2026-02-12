@@ -1,6 +1,7 @@
 /// This screen displays a list of collaboration boards that users can join or create.
 /// It includes filtering, searching, sorting, and chat integration using Stream.
 
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +23,35 @@ class _CollabBoardScreenState extends State<CollabBoardScreen> {
   final currentUserId = FirebaseAuth.instance.currentUser?.uid;
   final TextEditingController _searchController = TextEditingController();
   late String _sortOption;
+  final ValueNotifier<List<DocumentSnapshot>> _filteredDocs = ValueNotifier([]);
+  List<DocumentSnapshot> _allDocs = [];
+  Timer? _debounce;
+  StreamSubscription? _collabSubscription;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(_onSearchChanged);
+    _collabSubscription = getCollabStream().listen((snapshot) {
+      _allDocs = snapshot.docs;
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        _updateFilteredDocs();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _filteredDocs.dispose();
+    _debounce?.cancel();
+    _collabSubscription?.cancel();
+    super.dispose();
+  }
 
   /// Initializes the default sorting option after localization is available.
   @override
@@ -29,6 +59,16 @@ class _CollabBoardScreenState extends State<CollabBoardScreen> {
     super.didChangeDependencies();
     final localizer = AppLocalizations.of(context)!;
     _sortOption = localizer.translate("recent");
+    _updateFilteredDocs();
+  }
+
+  void _onSearchChanged() {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () => _updateFilteredDocs());
+  }
+
+  void _updateFilteredDocs() {
+    _filteredDocs.value = _applyFilters(_allDocs);
   }
 
   /// Returns a stream of all collaboration documents ordered by creation time.
@@ -164,7 +204,6 @@ class _CollabBoardScreenState extends State<CollabBoardScreen> {
                 // Search bar for filtering collaborations.
                 TextField(
                   controller: _searchController,
-                  onChanged: (_) => setState(() {}),
                   decoration: InputDecoration(
                     hintText: localizer.translate("search_placeholder"),
                     prefixIcon: const Icon(Icons.search),
@@ -189,6 +228,7 @@ class _CollabBoardScreenState extends State<CollabBoardScreen> {
                       ].map((String opt) => DropdownMenuItem<String>(value: opt, child: Text(opt))).toList(),
                       onChanged: (value) {
                         setState(() => _sortOption = value!);
+                        _updateFilteredDocs();
                       },
                     ),
                   ],
@@ -196,13 +236,16 @@ class _CollabBoardScreenState extends State<CollabBoardScreen> {
 
                 const SizedBox(height: 8),
                 Expanded(
-                  child: StreamBuilder<QuerySnapshot>(
-                    stream: getCollabStream(),
-                    builder: (context, snapshot) {
-                      if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+                  child: ValueListenableBuilder<List<DocumentSnapshot>>(
+                    valueListenable: _filteredDocs,
+                    builder: (context, filtered, _) {
+                      if (_isLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
 
-                      final filtered = _applyFilters(snapshot.data!.docs);
-                      if (filtered.isEmpty) return Center(child: Text(localizer.translate("no_matching_collabs")));
+                      if (filtered.isEmpty) {
+                        return Center(child: Text(localizer.translate("no_matching_collabs")));
+                      }
 
                       return ListView.builder(
                         itemCount: filtered.length,
